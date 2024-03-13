@@ -1,16 +1,10 @@
 package edu.examples.todos.domain.common.entities;
 
-import com.fasterxml.jackson.databind.ser.Serializers;
 import edu.examples.todos.domain.common.entities.identities.EntityId;
-import edu.examples.todos.domain.common.entities.identities.PlainEntityId;
 import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.MapsId;
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
-import lombok.Setter;
 
 import java.util.Objects;
 

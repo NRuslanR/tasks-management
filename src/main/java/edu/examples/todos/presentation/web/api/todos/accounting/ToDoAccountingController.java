@@ -1,6 +1,5 @@
 package edu.examples.todos.presentation.web.api.todos.accounting;
 
-import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.usecases.todos.accounting.ToDoAccountingUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;

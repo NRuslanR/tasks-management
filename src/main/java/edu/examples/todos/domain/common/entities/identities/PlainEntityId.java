@@ -1,7 +1,5 @@
 package edu.examples.todos.domain.common.entities.identities;
 
-import edu.examples.todos.domain.actors.todos.ToDoId;
-import jakarta.persistence.Embeddable;
 import lombok.Data;
 
 import java.util.Objects;

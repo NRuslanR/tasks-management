@@ -1,8 +1,7 @@
 package edu.examples.todos.domain.actors.todos;
 
 import edu.examples.todos.domain.common.entities.identities.EntityId;
-import edu.examples.todos.domain.common.entities.identities.PlainEntityId;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
 import lombok.Data;
 import lombok.NonNull;
 

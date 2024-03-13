@@ -1,7 +1,6 @@
 package edu.examples.todos.domain.common.entities.identities;
 
 import jakarta.persistence.Embeddable;
-import jakarta.persistence.Transient;
 
 import java.io.Serializable;
 

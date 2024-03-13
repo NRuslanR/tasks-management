@@ -3,23 +3,18 @@ package edu.examples.todos.persistence.repositories;
 import edu.examples.todos.domain.actors.ToDoTestsUtils;
 import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
-import edu.examples.todos.persistence.common.PersistenceTests;
 import edu.examples.todos.persistence.repositories.common.DomainEntityRepositoryTests;
-import edu.examples.todos.persistence.repositories.common.EntityRepository;
 import edu.examples.todos.persistence.repositories.todos.ToDoRepository;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ToDoRepositoryTests extends DomainEntityRepositoryTests<ToDoRepository, ToDo, ToDoId>
 {
@@ -27,6 +22,18 @@ public class ToDoRepositoryTests extends DomainEntityRepositoryTests<ToDoReposit
     public ToDoRepositoryTests(ToDoRepository entityRepository)
     {
         super(entityRepository);
+    }
+
+    @Test
+    public void should_Return_ToDoByName_When_ItExists()
+    {
+        var expected = seedEntities.get(0);
+
+        var actual = entityRepository.findByName(expected.getName());
+
+        assertTrue(actual.isPresent());
+
+        assertEntitiesEquals(expected, actual.get());
     }
 
     @Override

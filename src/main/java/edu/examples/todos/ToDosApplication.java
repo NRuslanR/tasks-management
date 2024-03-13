@@ -4,8 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.util.StringUtils;
 
-import java.util.stream.Stream;
+import java.util.Arrays;
 
 @SpringBootApplication
 @Slf4j
@@ -19,6 +20,7 @@ public class ToDosApplication implements CommandLineRunner
     @Override
     public void run(String... args) throws Exception
     {
-        log.info(Stream.of(args).reduce("", (s, s2) -> s + ", " + s2));
+        log.info("CONVERTERS: " + StringUtils.collectionToCommaDelimitedString(Arrays.asList(args)));
     }
+
 }
