@@ -7,8 +7,10 @@ import edu.examples.todos.domain.decisionsupport.search.todos.ToDoFinder;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -21,45 +23,62 @@ public class StandardToDoCreationService implements ToDoCreationService
     public CreateToDoReply createToDo(@NonNull CreateToDoRequest request)
             throws NullPointerException, IncorrectCreateToDoRequestException, ToDoAlreadyExistsDomainException
     {
-        ensureRequestIsValid(request);
-
-        var toDo = doCreateToDo(request);
-
-        return CreateToDoReply.of(toDo);
+        return createToDoAsync(request).block();
     }
 
-    private void ensureRequestIsValid(CreateToDoRequest request)
+    @Override
+    public Mono<CreateToDoReply> createToDoAsync(CreateToDoRequest request)
+            throws NullPointerException, IncorrectCreateToDoRequestException, ToDoAlreadyExistsDomainException
     {
+        return
+                ensureRequestIsValid(request)
+                        .flatMap(this::doCreateToDo)
+                        .flatMap(t -> Mono.just(CreateToDoReply.of(t)));
     }
 
-    private ToDo doCreateToDo(CreateToDoRequest request) throws IncorrectCreateToDoRequestException
+    private Mono<CreateToDoRequest> ensureRequestIsValid(CreateToDoRequest request)
     {
-        ensureToDoWithSpecifiedNameDoesNotExists(request.getName());
+        return Mono.fromCallable(() -> {
 
+            Objects.requireNonNull(request);
+
+            return request;
+
+        });
+    }
+
+    private Mono<ToDo> doCreateToDo(CreateToDoRequest request) throws IncorrectCreateToDoRequestException
+    {
+        return
+                ensureToDoWithSpecifiedNameDoesNotExists(request.getName())
+                        .then(createToDoFromRequest(request))
+                        .onErrorResume(
+                                ToDoNameInCorrectException.class,
+                                e -> Mono.error(new IncorrectCreateToDoRequestException(e.getMessage()))
+                        );
+    }
+
+    private Mono<ToDo> createToDoFromRequest(CreateToDoRequest request)
+    {
         var toDoId = new ToDoId(UUID.randomUUID());
 
         var createdAt = LocalDateTime.now();
 
-        try
-        {
-            var toDo = new ToDo(toDoId, request.getName(), request.getDescription(), createdAt);
-
-            return toDo;
-        }
-
-        catch (ToDoNameInCorrectException exception)
-        {
-            throw new IncorrectCreateToDoRequestException(exception.getMessage());
-        }
+        return Mono.fromCallable(() -> new ToDo(toDoId, request.getName(), request.getDescription(), createdAt));
     }
 
-    private void ensureToDoWithSpecifiedNameDoesNotExists(String name) throws ToDoAlreadyExistsDomainException
+    private Mono<Void> ensureToDoWithSpecifiedNameDoesNotExists(String name) throws ToDoAlreadyExistsDomainException
     {
-        var toDo = toDoFinder.findToDoByName(name);
+        return
+                toDoFinder
+                    .findToDoByNameAsync(name)
+                        .doOnSuccess(t -> {
 
-        if (toDo.isPresent())
-        {
-            throw new ToDoAlreadyExistsDomainException(name);
-        }
+                            if (!Objects.isNull(t))
+                            {
+                                throw new ToDoAlreadyExistsDomainException(name);
+                            }
+                        })
+                        .then();
     }
 }

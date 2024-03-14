@@ -15,7 +15,7 @@ public class ApplicationErrorHandler extends ResponseEntityExceptionHandler
     @ExceptionHandler({
             UseCasesException.class
     })
-    public ResponseEntity<ApplicationError> handleApplicationException(Exception exception)
+    public ResponseEntity<ApplicationError> handleApplicationException(UseCasesException exception)
     {
         return ResponseEntity.badRequest().body(new ApplicationError(exception.getMessage()));
     }

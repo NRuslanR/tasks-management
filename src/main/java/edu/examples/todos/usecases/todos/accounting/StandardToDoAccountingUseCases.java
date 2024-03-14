@@ -40,8 +40,7 @@ public class StandardToDoAccountingUseCases implements ToDoAccountingUseCases
             throws ToDoAlreadyExistsException, IncorrectCreateToDoCommandException
     {
         return
-            Mono
-                .fromCallable(() -> toDoCreationService.createToDo(createToDoRequest))
+                toDoCreationService.createToDoAsync(createToDoRequest)
                     .onErrorResume(
                             ToDoAlreadyExistsDomainException.class,
                             e -> Mono.error(new ToDoAlreadyExistsException(e.getMessage()))
@@ -54,7 +53,10 @@ public class StandardToDoAccountingUseCases implements ToDoAccountingUseCases
 
     private Mono<CreateToDoReply> processCreateToDoReply(CreateToDoReply reply)
     {
-        return Mono.fromCallable(() -> new CreateToDoReply(toDoRepository.save(reply.getToDo())));
+        return
+                Mono
+                    .fromCallable(() -> toDoRepository.save(reply.getToDo()))
+                    .map(CreateToDoReply::new);
     }
 
     private Mono<CreateToDoResult> toCommandResultAsync(CreateToDoReply reply)
