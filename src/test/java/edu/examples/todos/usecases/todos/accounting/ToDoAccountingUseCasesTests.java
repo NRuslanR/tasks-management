@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public abstract class ToDoAccountingUseCasesTests
 {
     @Autowired
-    private ToDoAccountingUseCases toDoAccountingUseCases;
+    protected ToDoAccountingUseCases toDoAccountingUseCases;
 
     private enum ToDoNameUseCases { SUCCESSFUL, ALREADY_EXISTS }
 

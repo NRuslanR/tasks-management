@@ -2,46 +2,43 @@ package edu.examples.todos.persistence.repositories.common;
 
 import edu.examples.todos.domain.common.entities.BaseEntity;
 import edu.examples.todos.domain.common.entities.identities.EntityId;
-import edu.examples.todos.persistence.common.PersistenceTests;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.junit.jupiter.api.TestInstance;
 
 import java.util.List;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @RequiredArgsConstructor
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class DomainEntityRepositoryTests<
         Repository extends EntityRepository<Entity, Identity>,
         Entity extends BaseEntity<Identity>, 
         Identity extends EntityId<Identity>
-    > extends PersistenceTests
+    >
 {
     protected List<Entity> seedEntities;
 
     protected final Repository entityRepository;
 
-    @Autowired
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    @Autowired
-    private TransactionTemplate transactionTemplate;
-
-    @BeforeEach
-    public void setupForEach()
+    @BeforeAll
+    public void setupFixtureForAll()
     {
-        if (Objects.isNull(seedEntities))
-            seedEntities = createSeedEntities(entityManager, transactionTemplate);
+        seedEntities = createSeedEntities();
+
+        entityRepository.saveAll(seedEntities);
     }
 
-    protected abstract List<Entity> createSeedEntities(EntityManager entityManager, TransactionTemplate transactionTemplate);
+    @AfterAll
+    public void clearFixtureForAll()
+    {
+        entityRepository.deleteAll();
+    }
+
+    protected abstract List<Entity> createSeedEntities();
 
     @Test
     public void should_Return_EntityById_When_ItExists()
@@ -70,7 +67,7 @@ public abstract class DomainEntityRepositoryTests<
     @Test
     public void should_Add_Entity_When_EntityIsValid()
     {
-        var expected = createEntityToBeAdded();
+        var expected = createTestEntity();
 
         var actual = entityRepository.save(expected);
 
@@ -80,7 +77,9 @@ public abstract class DomainEntityRepositoryTests<
     @Test
     public void should_Update_Entity_When_ItExists()
     {
-        var expected = seedEntities.get(0);
+        var expected = createTestEntity();
+
+        expected = entityRepository.save(expected);
 
         changeEntityToBeUpdated(expected);
 
@@ -91,18 +90,18 @@ public abstract class DomainEntityRepositoryTests<
 
     protected abstract void changeEntityToBeUpdated(Entity target);
 
-    protected abstract Entity createEntityToBeAdded();
+    protected abstract Entity createTestEntity();
 
     @Test
     public void should_Remove_Entity_When_EntityExists()
     {
-        var id = seedEntities.get(0).getId();
+        var entity = createTestEntity();
 
-        var actual = entityRepository.findById(id).get();
+        entity = entityRepository.save(entity);
 
-        entityRepository.delete(actual);
+        entityRepository.delete(entity);
 
-        var result = entityRepository.findById(id);
+        var result = entityRepository.findById(entity.getId());
 
         assertTrue(result.isEmpty());
     }

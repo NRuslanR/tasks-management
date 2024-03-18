@@ -1,6 +1,5 @@
 package edu.examples.todos.presentation.web.api.common.errors;
 
-import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.AllArgsConstructor;
