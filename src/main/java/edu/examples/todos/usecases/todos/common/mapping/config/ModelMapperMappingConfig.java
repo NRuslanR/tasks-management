@@ -2,7 +2,7 @@ package edu.examples.todos.usecases.todos.common.mapping.config;
 
 import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
-import edu.examples.todos.usecases.todos.accounting.dtos.ToDoDto;
+import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;

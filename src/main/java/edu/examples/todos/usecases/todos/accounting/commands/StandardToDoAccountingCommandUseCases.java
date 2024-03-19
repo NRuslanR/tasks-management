@@ -1,7 +1,8 @@
-package edu.examples.todos.usecases.todos.accounting;
+package edu.examples.todos.usecases.todos.accounting.commands;
 
 import edu.examples.todos.domain.operations.creation.todos.*;
 import edu.examples.todos.persistence.repositories.todos.ToDoRepository;
+import edu.examples.todos.usecases.todos.accounting.ToDoAlreadyExistsException;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommandResultMapper;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
@@ -15,7 +16,7 @@ import reactor.core.scheduler.Schedulers;
 
 @Service
 @RequiredArgsConstructor
-public class StandardToDoAccountingUseCases implements ToDoAccountingUseCases
+public class StandardToDoAccountingCommandUseCases implements ToDoAccountingCommandUseCases
 {
     private final ToDoCreationService toDoCreationService;
 

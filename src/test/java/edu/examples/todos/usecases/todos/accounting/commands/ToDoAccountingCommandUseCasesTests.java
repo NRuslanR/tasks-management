@@ -1,22 +1,25 @@
-package edu.examples.todos.usecases.todos.accounting;
+package edu.examples.todos.usecases.todos.accounting.commands;
 
+import edu.examples.todos.usecases.todos.accounting.ToDoAlreadyExistsException;
 import edu.examples.todos.usecases.todos.accounting.commands.create.IncorrectCreateToDoCommandException;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.platform.commons.util.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.Map;
 
-import static edu.examples.todos.usecases.todos.accounting.ToDoAccountingUseCasesTestsUtils.createSimpleCommandForToDoCreating;
-import static edu.examples.todos.usecases.todos.accounting.ToDoAccountingUseCasesTestsUtils.createSimpleIncorrectCommandForToDoCreating;
+import static edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCasesTestsUtils.createSimpleCommandForToDoCreating;
+import static edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCasesTestsUtils.createSimpleIncorrectCommandForToDoCreating;
 import static org.junit.jupiter.api.Assertions.*;
 
-public abstract class ToDoAccountingUseCasesTests
+@RequiredArgsConstructor
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public abstract class ToDoAccountingCommandUseCasesTests
 {
-    @Autowired
-    protected ToDoAccountingUseCases toDoAccountingUseCases;
+    protected final ToDoAccountingCommandUseCases toDoAccountingUseCases;
 
     private enum ToDoNameUseCases { SUCCESSFUL, ALREADY_EXISTS }
 

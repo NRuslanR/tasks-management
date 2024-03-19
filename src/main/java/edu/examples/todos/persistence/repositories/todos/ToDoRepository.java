@@ -1,6 +1,5 @@
 package edu.examples.todos.persistence.repositories.todos;
 
-
 import edu.examples.todos.common.config.profiles.DefaultProfile;
 import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;

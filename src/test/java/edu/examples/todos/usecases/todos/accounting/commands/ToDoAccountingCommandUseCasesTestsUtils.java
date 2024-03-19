@@ -1,15 +1,15 @@
-package edu.examples.todos.usecases.todos.accounting;
+package edu.examples.todos.usecases.todos.accounting.commands;
 
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 
 import java.util.List;
 import java.util.stream.Stream;
 
-public class ToDoAccountingUseCasesTestsUtils
+public class ToDoAccountingCommandUseCasesTestsUtils
 {
     public static List<CreateToDoCommand> createSimpleCommandsForToDoCreating(String... toDoNames)
     {
-        return Stream.of(toDoNames).map(ToDoAccountingUseCasesTestsUtils::createSimpleCommandForToDoCreating).toList();
+        return Stream.of(toDoNames).map(ToDoAccountingCommandUseCasesTestsUtils::createSimpleCommandForToDoCreating).toList();
     }
 
     public static CreateToDoCommand createSimpleCommandForToDoCreating(String toDoName)

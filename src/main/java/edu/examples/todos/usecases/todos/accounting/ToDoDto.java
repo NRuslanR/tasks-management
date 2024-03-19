@@ -1,4 +1,4 @@
-package edu.examples.todos.usecases.todos.accounting.dtos;
+package edu.examples.todos.usecases.todos.accounting;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
