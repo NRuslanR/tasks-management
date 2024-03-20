@@ -17,3 +17,6 @@ management:
 
     metrics:
       enabled: true
+
+  main:
+    web-application-type: reactive
