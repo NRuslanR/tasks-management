@@ -1,4 +1,4 @@
-package edu.examples.todos.presentation.web.api.common.errors;
+package edu.examples.todos.presentation.api.common.errors;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;

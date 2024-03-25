@@ -1,6 +1,7 @@
-package edu.examples.todos.presentation.web.api.common.errors.handling;
+package edu.examples.todos.presentation.api.common.errors.handling;
 
-import edu.examples.todos.presentation.web.api.common.errors.ApplicationError;
+import edu.examples.todos.presentation.api.common.errors.ApplicationError;
+import edu.examples.todos.presentation.api.common.exceptions.ApiException;
 import edu.examples.todos.usecases.common.exceptions.UseCasesException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,14 @@ public class ApplicationErrorHandler extends ResponseEntityExceptionHandler
             UseCasesException.class
     })
     public ResponseEntity<ApplicationError> handleUseCasesException(UseCasesException exception)
+    {
+        return ResponseEntity.badRequest().body(new ApplicationError(exception.getMessage()));
+    }
+
+    @ExceptionHandler({
+            ApiException.class
+    })
+    public ResponseEntity<ApplicationError> handleApiException(UseCasesException exception)
     {
         return ResponseEntity.badRequest().body(new ApplicationError(exception.getMessage()));
     }

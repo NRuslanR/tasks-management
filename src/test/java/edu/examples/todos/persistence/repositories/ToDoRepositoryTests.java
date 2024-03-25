@@ -68,6 +68,6 @@ public abstract class ToDoRepositoryTests extends DomainEntityRepositoryTests<To
         assertEquals(expected.getId(), actual.getId());
         assertEquals(expected.getName(), actual.getName());
         assertEquals(expected.getDescription(), actual.getDescription());
-        assertEquals(expected.getCreatedAt().withNano(0), actual.getCreatedAt().withNano(0));
+        assertEquals(expected.getCreatedAt(), actual.getCreatedAt());
     }
 }

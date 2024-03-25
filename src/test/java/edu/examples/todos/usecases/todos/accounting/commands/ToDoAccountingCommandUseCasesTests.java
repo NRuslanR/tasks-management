@@ -30,7 +30,7 @@ public abstract class ToDoAccountingCommandUseCasesTests
             );
 
     @Test
-    public void should_Create_ToDo_When_CommandIsCorrect_And_ToDoDoesNotExistsYet()
+    public void should_Create_ToDo_When_CreateToDoCommand_IsCorrect_And_ToDoDoesNotExistsYet()
     {
         var toDoName = testToDoNames.get(ToDoNameUseCases.SUCCESSFUL);
 
@@ -56,7 +56,7 @@ public abstract class ToDoAccountingCommandUseCasesTests
     }
 
     @Test
-    public void should_ThrowException_When_CommandIsNotCorrect()
+    public void should_ThrowException_When_CreateToDoCommand_IsNotCorrect()
     {
         var incorrectCreateToDoCommand = createSimpleIncorrectCommandForToDoCreating();
 

@@ -1,10 +1,7 @@
 package edu.examples.todos.domain.actors.todos;
 
 import edu.examples.todos.domain.common.entities.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
@@ -66,6 +63,32 @@ public class ToDo extends BaseEntity<ToDoId>
     @Setter(AccessLevel.PRIVATE)
     @NonNull
     private LocalDateTime createdAt;
+
+    private void setCreatedAt(LocalDateTime value)
+    {
+        createdAt = adjustDate(value);
+    }
+    @PrePersist
+    public void prePersist()
+    {
+        adjustDates();
+    }
+
+    @PreUpdate
+    public void preUpdate()
+    {
+        adjustDates();
+    }
+
+    private void adjustDates()
+    {
+        createdAt = adjustDate(createdAt);
+    }
+
+    private LocalDateTime adjustDate(LocalDateTime value)
+    {
+        return value.withNano(0);
+    }
 
     private ToDoId parentToDoId;
 }
