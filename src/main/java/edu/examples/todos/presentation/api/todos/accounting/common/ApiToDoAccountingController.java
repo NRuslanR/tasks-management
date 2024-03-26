@@ -2,6 +2,7 @@ package edu.examples.todos.presentation.api.todos.accounting.common;
 
 import edu.examples.todos.presentation.api.todos.accounting.common.resources.ToDoResource;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
+import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 import org.springframework.hateoas.PagedModel;
 import reactor.core.publisher.Mono;
 
@@ -19,4 +20,6 @@ public interface ApiToDoAccountingController
     Mono<ToDoResource> getToDoById(String toDoId);
 
     Mono<ToDoResource> createToDo(CreateToDoCommand createToDoCommand);
+
+    Mono<ToDoResource> updateToDo(String toDoId, UpdateToDoCommand updateToDoCommand);
 }

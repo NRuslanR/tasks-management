@@ -6,6 +6,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
+/* refactor: to turn "throws" to corresponding comment because the exceptions will be wrapped by Mono as well */
 public interface ToDoFinder
 {
     Optional<ToDo> findToDoByName(String name) throws NullPointerException, DomainException;

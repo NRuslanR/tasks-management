@@ -15,6 +15,11 @@ public class ToDoId extends EntityId<ToDoId>
     @NonNull
     private UUID value;
 
+    public static ToDoId of(String value)
+    {
+        return of(UUID.fromString(value));
+    }
+
     public static ToDoId of(UUID value)
     {
         return new ToDoId(value);

@@ -5,7 +5,6 @@ import edu.examples.todos.usecases.todos.accounting.ToDoNotFoundException;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCasesTestsUtils;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
-import edu.examples.todos.usecases.todos.accounting.queries.common.FindObjectsQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findbyid.GetByIdQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findbyid.IncorrectGetByIdQueryException;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQuery;
@@ -19,8 +18,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -28,8 +25,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.*;
 
 @RequiredArgsConstructor

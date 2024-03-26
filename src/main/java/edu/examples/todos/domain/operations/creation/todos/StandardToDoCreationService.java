@@ -47,7 +47,7 @@ public class StandardToDoCreationService implements ToDoCreationService
         });
     }
 
-    private Mono<ToDo> doCreateToDo(CreateToDoRequest request) throws IncorrectCreateToDoRequestException
+    private Mono<ToDo> doCreateToDo(CreateToDoRequest request)
     {
         return
                 ensureToDoWithSpecifiedNameDoesNotExists(request.getName())
@@ -67,7 +67,7 @@ public class StandardToDoCreationService implements ToDoCreationService
         return Mono.fromCallable(() -> new ToDo(toDoId, request.getName(), request.getDescription(), createdAt));
     }
 
-    private Mono<Void> ensureToDoWithSpecifiedNameDoesNotExists(String name) throws ToDoAlreadyExistsDomainException
+    private Mono<Void> ensureToDoWithSpecifiedNameDoesNotExists(String name)
     {
         return
                 toDoFinder

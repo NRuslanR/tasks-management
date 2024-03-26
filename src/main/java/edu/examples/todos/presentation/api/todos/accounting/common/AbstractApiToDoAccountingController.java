@@ -7,6 +7,8 @@ import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
+import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
+import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoResult;
 import edu.examples.todos.usecases.todos.accounting.queries.ToDoAccountingQueryUseCases;
 import edu.examples.todos.usecases.todos.accounting.queries.common.FindObjectsQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findbyid.GetByIdQuery;
@@ -94,6 +96,18 @@ public abstract class AbstractApiToDoAccountingController implements ApiToDoAcco
                 toDoAccountingCommandUseCases
                         .createToDo(createToDoCommand)
                         .map(CreateToDoResult::getToDo)
+                        .flatMap(this::toResource);
+    }
+
+    @Override
+    public Mono<ToDoResource> updateToDo(String toDoId, UpdateToDoCommand updateToDoCommand)
+    {
+        updateToDoCommand.setToDoId(toDoId);
+
+        return
+                toDoAccountingCommandUseCases
+                        .updateToDo(updateToDoCommand)
+                        .map(UpdateToDoResult::getToDo)
                         .flatMap(this::toResource);
     }
 

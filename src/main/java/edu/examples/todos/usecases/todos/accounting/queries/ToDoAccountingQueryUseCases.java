@@ -9,6 +9,7 @@ import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosR
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.IncorrectFindToDosQueryException;
 import reactor.core.publisher.Mono;
 
+/* refactor: to turn "throws" to corresponding comment because the exceptions will be wrapped by Mono as well */
 public interface ToDoAccountingQueryUseCases
 {
     Mono<GetByIdResult> getToDoById(GetByIdQuery query)

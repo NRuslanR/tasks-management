@@ -2,10 +2,8 @@ package edu.examples.todos.domain.actors.todos;
 
 import edu.examples.todos.domain.common.entities.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
-import lombok.Setter;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -47,7 +45,8 @@ public class ToDo extends BaseEntity<ToDoId>
 
     private String name;
 
-    private void setName(String newName) throws ToDoNameInCorrectException
+    /* refactor: create domain service to change To-Do's state (name) in order to it was consistent to others */
+    public void setName(String newName) throws ToDoNameInCorrectException
     {
         if (!StringUtils.hasText(newName))
         {
@@ -60,14 +59,14 @@ public class ToDo extends BaseEntity<ToDoId>
     private String description;
     
     @Temporal(TemporalType.TIMESTAMP)
-    @Setter(AccessLevel.PRIVATE)
     @NonNull
     private LocalDateTime createdAt;
 
-    private void setCreatedAt(LocalDateTime value)
+    private void setCreatedAt(@NonNull LocalDateTime value)
     {
         createdAt = adjustDate(value);
     }
+
     @PrePersist
     public void prePersist()
     {

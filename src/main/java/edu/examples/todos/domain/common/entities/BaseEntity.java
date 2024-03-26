@@ -3,8 +3,10 @@ package edu.examples.todos.domain.common.entities;
 import edu.examples.todos.domain.common.entities.identities.EntityId;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.MappedSuperclass;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NonNull;
+import lombok.Setter;
 
 import java.util.Objects;
 
@@ -14,6 +16,7 @@ public abstract class BaseEntity<Identity extends EntityId<Identity>>
 {
     @EmbeddedId
     @NonNull
+    @Setter(AccessLevel.PRIVATE)
     private Identity id;
 
     protected BaseEntity(Identity id) throws NullPointerException

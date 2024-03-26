@@ -40,13 +40,12 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
                         .flatMap(this::doGetToDoById);
     }
 
-    private Mono<GetByIdQuery> ensureGetByIdQueryIsValid(GetByIdQuery query) throws IncorrectGetByIdQueryException
+    private Mono<GetByIdQuery> ensureGetByIdQueryIsValid(GetByIdQuery query)
     {
         return StringUtils.hasText(query.getToDoId()) ? Mono.just(query) : Mono.error(new IncorrectGetByIdQueryException());
     }
 
     private Mono<GetByIdResult> doGetToDoById(GetByIdQuery findByIdQuery)
-            throws IncorrectGetByIdQueryException, ToDoNotFoundException
     {
         /* refactor: use JOOQ instead */
         return
@@ -65,7 +64,6 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
 
     @Override
     public Mono<FindToDosResult> findToDos(@NonNull FindToDosQuery query)
-            throws NullPointerException, IncorrectFindToDosQueryException
     {
         return
                 ensureFindToDosQueryIsValid(query)

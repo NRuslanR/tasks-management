@@ -7,6 +7,7 @@ import edu.examples.todos.presentation.api.todos.accounting.common.resources.ToD
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
+import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.queries.ToDoAccountingQueryUseCases;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedModel;
@@ -57,5 +58,15 @@ public class HttpApiToDoAccountingController extends AbstractApiToDoAccountingCo
     public Mono<ToDoResource> createToDo(@RequestBody CreateToDoCommand createToDoCommand)
     {
         return super.createToDo(createToDoCommand);
+    }
+
+    @Override
+    @PutMapping(path = "/{toDoId}")
+    public Mono<ToDoResource> updateToDo(
+            @PathVariable("toDoId") String toDoId,
+            @RequestBody UpdateToDoCommand updateToDoCommand
+    )
+    {
+        return super.updateToDo(toDoId, updateToDoCommand);
     }
 }
