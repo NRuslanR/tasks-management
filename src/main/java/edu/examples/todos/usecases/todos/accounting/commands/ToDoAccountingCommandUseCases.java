@@ -5,6 +5,9 @@ import edu.examples.todos.usecases.todos.accounting.ToDoNotFoundException;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
 import edu.examples.todos.usecases.todos.accounting.commands.create.IncorrectCreateToDoCommandException;
+import edu.examples.todos.usecases.todos.accounting.commands.remove.IncorrectRemoveToDoCommandException;
+import edu.examples.todos.usecases.todos.accounting.commands.remove.RemoveToDoCommand;
+import edu.examples.todos.usecases.todos.accounting.commands.remove.RemoveToDoResult;
 import edu.examples.todos.usecases.todos.accounting.commands.update.IncorrectUpdateToDoCommandException;
 import edu.examples.todos.usecases.todos.accounting.commands.update.SavingToDoException;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
@@ -23,4 +26,11 @@ public interface ToDoAccountingCommandUseCases
                 IncorrectUpdateToDoCommandException,
                 ToDoNotFoundException,
                 SavingToDoException;
+
+    Mono<RemoveToDoResult> removeToDo(RemoveToDoCommand command)
+        throws
+            NullPointerException,
+            IncorrectRemoveToDoCommandException,
+            ToDoNotFoundException,
+            SavingToDoException;
 }

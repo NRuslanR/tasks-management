@@ -177,6 +177,42 @@ public abstract class ToDoAccountingCommandUseCasesTests
                 .verify();
     }
 
+    @Test
+    public void should_RemoveToDo_When_RemoveToDoCommand_IsCorrect_And_ToDoExists()
+    {
+        var toDoId =
+                createToDo(testToDoNames.get(ToDoNameUseCases.REMOVE))
+                        .getValue()
+                        .block()
+                        .getToDo()
+                        .getId();
+
+        var command = ToDoAccountingCommandUseCasesTestsUtils.createSimpleCommandForToDoRemoving(toDoId);
+
+        var result = toDoAccountingCommandUseCases.removeToDo(command);
+
+        StepVerifier
+                .create(result)
+                .assertNext(v -> {
+
+                    assertNotNull(v);
+
+                    var toDo = v.getToDo();
+
+                    assertEquals(toDoId, toDo.getId());
+
+                    assertThrows(ToDoNotFoundException.class, () -> {
+
+                        var updateCommand =
+                                ToDoAccountingCommandUseCasesTestsUtils
+                                        .createSimpleCommandForToDoUpdating(toDoId);
+
+                        toDoAccountingCommandUseCases.updateToDo(updateCommand).block();
+                    });
+                })
+                .verifyComplete();
+    }
+
     private KeyValue<CreateToDoCommand, Mono<CreateToDoResult>> createToDo(String toDoName)
     {
         var command = ToDoAccountingCommandUseCasesTestsUtils.createSimpleCommandForToDoCreating(toDoName);

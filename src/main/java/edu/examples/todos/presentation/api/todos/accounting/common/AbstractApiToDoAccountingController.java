@@ -4,9 +4,11 @@ import edu.examples.todos.presentation.api.common.config.ApiPaginationConfigurat
 import edu.examples.todos.presentation.api.todos.accounting.common.resources.ToDoResource;
 import edu.examples.todos.presentation.api.todos.accounting.common.resources.ToDoResourceAssembler;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
+import edu.examples.todos.usecases.todos.accounting.ToDoNotFoundException;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
+import edu.examples.todos.usecases.todos.accounting.commands.remove.RemoveToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoResult;
 import edu.examples.todos.usecases.todos.accounting.queries.ToDoAccountingQueryUseCases;
@@ -109,6 +111,16 @@ public abstract class AbstractApiToDoAccountingController implements ApiToDoAcco
                         .updateToDo(updateToDoCommand)
                         .map(UpdateToDoResult::getToDo)
                         .flatMap(this::toResource);
+    }
+
+    @Override
+    public Mono<Void> removeToDo(String toDoId)
+    {
+        return
+                toDoAccountingCommandUseCases
+                        .removeToDo(new RemoveToDoCommand(toDoId))
+                        .onErrorComplete(ToDoNotFoundException.class)
+                        .then();
     }
 
     private Mono<ToDoResource> toResource(ToDoDto toDoDto)

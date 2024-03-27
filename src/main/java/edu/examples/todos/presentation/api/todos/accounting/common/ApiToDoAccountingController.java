@@ -22,4 +22,6 @@ public interface ApiToDoAccountingController
     Mono<ToDoResource> createToDo(CreateToDoCommand createToDoCommand);
 
     Mono<ToDoResource> updateToDo(String toDoId, UpdateToDoCommand updateToDoCommand);
+
+    Mono<Void> removeToDo(String toDoId);
 }

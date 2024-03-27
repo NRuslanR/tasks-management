@@ -1,6 +1,7 @@
 package edu.examples.todos.usecases.todos.accounting.commands;
 
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
+import edu.examples.todos.usecases.todos.accounting.commands.remove.RemoveToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 
 import java.util.List;
@@ -36,5 +37,10 @@ public class ToDoAccountingCommandUseCasesTestsUtils
     public static UpdateToDoCommand createSimpleIncorrectCommandForToDoUpdating(String toDoId)
     {
         return new UpdateToDoCommand(toDoId, "", "");
+    }
+
+    public static RemoveToDoCommand createSimpleCommandForToDoRemoving(String toDoId)
+    {
+        return new RemoveToDoCommand(toDoId);
     }
 }

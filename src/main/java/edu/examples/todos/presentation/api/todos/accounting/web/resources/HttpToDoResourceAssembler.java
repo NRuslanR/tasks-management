@@ -28,9 +28,12 @@ public class HttpToDoResourceAssembler extends ToDoResourceAssembler
                     methodOn(HttpApiToDoAccountingController.class).getToDoById(toDoDto.getId())
             )
             .withSelfRel().toMono().block(),
-                linkTo(
-                        methodOn(HttpApiToDoAccountingController.class).updateToDo(toDoDto.getId(), null)
-                ).withRel("update").toMono().block()
+            linkTo(
+                    methodOn(HttpApiToDoAccountingController.class).updateToDo(toDoDto.getId(), null)
+            ).withRel("update").toMono().block(),
+            linkTo(
+                    methodOn(HttpApiToDoAccountingController.class).removeToDo(toDoDto.getId())
+            ).withRel("remove").toMono().block()
         );
     }
 
@@ -45,7 +48,8 @@ public class HttpToDoResourceAssembler extends ToDoResourceAssembler
                     methodOn(
                             HttpApiToDoAccountingController.class
                     ).findToDos(
-                            Optional.empty(), Optional.empty(),
+                            Optional.empty(),
+                            Optional.empty(),
                             Optional.empty()
                     )
             ).withSelfRel().toMono().block().expand()

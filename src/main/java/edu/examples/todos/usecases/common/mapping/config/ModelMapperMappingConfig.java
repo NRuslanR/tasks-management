@@ -1,9 +1,8 @@
-package edu.examples.todos.usecases.todos.common.mapping.config;
+package edu.examples.todos.usecases.common.mapping.config;
 
 import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
-import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -52,7 +51,5 @@ public class ModelMapperMappingConfig
             };
 
         toDoDtoMap.addMappings(m -> m.using(idConverter).map(ToDo::getId, ToDoDto::setId));
-
-        var updateToDoMap = mapper.createTypeMap(UpdateToDoCommand.class, ToDo.class);
     }
 }

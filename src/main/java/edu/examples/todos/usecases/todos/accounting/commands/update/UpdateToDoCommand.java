@@ -1,7 +1,6 @@
 package edu.examples.todos.usecases.todos.accounting.commands.update;
 
 
-import edu.examples.todos.common.util.Intention;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

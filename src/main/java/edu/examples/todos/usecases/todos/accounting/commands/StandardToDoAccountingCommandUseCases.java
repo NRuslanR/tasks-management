@@ -2,19 +2,27 @@ package edu.examples.todos.usecases.todos.accounting.commands;
 
 import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
+import edu.examples.todos.domain.common.exceptions.DomainException;
 import edu.examples.todos.domain.operations.creation.todos.*;
 import edu.examples.todos.persistence.repositories.todos.ToDoRepository;
+import edu.examples.todos.usecases.common.mapping.UseCaseMapper;
 import edu.examples.todos.usecases.todos.accounting.ToDoAlreadyExistsException;
+import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.ToDoNotFoundException;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
-import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommandResultMapper;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
 import edu.examples.todos.usecases.todos.accounting.commands.create.IncorrectCreateToDoCommandException;
-import edu.examples.todos.usecases.todos.accounting.commands.update.*;
-import jakarta.transaction.Transactional;
+import edu.examples.todos.usecases.todos.accounting.commands.remove.IncorrectRemoveToDoCommandException;
+import edu.examples.todos.usecases.todos.accounting.commands.remove.RemoveToDoCommand;
+import edu.examples.todos.usecases.todos.accounting.commands.remove.RemoveToDoResult;
+import edu.examples.todos.usecases.todos.accounting.commands.update.IncorrectUpdateToDoCommandException;
+import edu.examples.todos.usecases.todos.accounting.commands.update.SavingToDoException;
+import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
+import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -27,9 +35,7 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
 {
     private final ToDoCreationService toDoCreationService;
 
-    private final CreateToDoCommandResultMapper createToDoCommandResultMapper;
-
-    private final UpdateToDoCommandResultMapper updateToDoCommandResultMapper;
+    private final UseCaseMapper mapper;
 
     private final ToDoRepository toDoRepository;
 
@@ -39,7 +45,7 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
             throws NullPointerException, IncorrectCreateToDoCommandException, ToDoAlreadyExistsException
     {
         return ensureCreateToDoCommandIsValid(command)
-                .map(createToDoCommandResultMapper::toCreateToDoRequest)
+                .flatMap(this::toCreateToDoRequest)
                 .flatMap(this::doCreateToDo)
                 .flatMap(this::processCreateToDoReply)
                 .flatMap(this::toCreateToDoCommandResultAsync)
@@ -49,6 +55,11 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
     private Mono<CreateToDoCommand> ensureCreateToDoCommandIsValid(CreateToDoCommand command)
     {
         return Mono.fromCallable(() -> Objects.requireNonNull(command));
+    }
+
+    private Mono<CreateToDoRequest> toCreateToDoRequest(CreateToDoCommand createToDoCommand)
+    {
+        return Mono.just(mapper.map(createToDoCommand, CreateToDoRequest.class));
     }
 
     private Mono<CreateToDoReply> doCreateToDo(CreateToDoRequest createToDoRequest)
@@ -74,10 +85,11 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
 
     private Mono<CreateToDoResult> toCreateToDoCommandResultAsync(CreateToDoReply reply)
     {
-        return Mono.just(createToDoCommandResultMapper.toCreateToDoResult(reply));
+        return Mono.just(mapper.map(reply, CreateToDoResult.class));
     }
 
     @Override
+    @Transactional
     public Mono<UpdateToDoResult> updateToDo(
             UpdateToDoCommand updateToDoCommand
     )
@@ -97,7 +109,7 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
                             if (StringUtils.hasText(v.getToDoId()))
                                 return v;
 
-                            throw new IncorrectUpdateToDoCommandException("Incorrect To-Do id");
+                            throw new IncorrectUpdateToDoCommandException("Incorrect To-Do id to update");
                         });
     }
 
@@ -105,9 +117,20 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
     {
         return
                 getToDoById(updateToDoCommand.getToDoId())
-                        .map(v -> updateToDoCommandResultMapper.changeToDoByCommand(v, updateToDoCommand))
+                        .map(v -> mapper.map(updateToDoCommand, v))
+                        .onErrorResume(
+                                DomainException.class,
+                                e -> Mono.error(
+                                        new IncorrectUpdateToDoCommandException(e.getMessage())
+                                )
+                        )
                         .flatMap(this::saveToDo)
-                        .map(v -> updateToDoCommandResultMapper.toUpdateToDoResult(v));
+                        .map(this::toUpdateToDoResult);
+    }
+
+    private UpdateToDoResult toUpdateToDoResult(ToDo toDo)
+    {
+        return new UpdateToDoResult(mapper.map(toDo, ToDoDto.class));
     }
 
     private Mono<ToDo> getToDoById(String toDoId)
@@ -122,6 +145,63 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
                     );
     }
 
+    @Override
+    @Transactional
+    public Mono<RemoveToDoResult> removeToDo(RemoveToDoCommand command)
+            throws
+            NullPointerException,
+            IncorrectRemoveToDoCommandException,
+            ToDoNotFoundException,
+            SavingToDoException
+    {
+        return
+                ensureRemoveToDoCommandIsValid(command)
+                        .flatMap(this::doRemoveToDo);
+    }
+
+    private Mono<RemoveToDoCommand> ensureRemoveToDoCommandIsValid(RemoveToDoCommand command)
+    {
+        return
+                Mono.fromCallable(() -> Objects.requireNonNull(command))
+                        .map(v -> {
+
+                            if (StringUtils.hasText(v.getToDoId()))
+                                return v;
+
+                            throw new IncorrectRemoveToDoCommandException("Incorrect To-Do id to remove");
+                        });
+    }
+
+    private Mono<RemoveToDoResult> doRemoveToDo(RemoveToDoCommand removeToDoCommand)
+    {
+        return
+                getToDoById(removeToDoCommand.getToDoId())
+                        .flatMap(this::deleteToDo)
+                        .map(this::toRemoveToDoResult);
+    }
+
+    private RemoveToDoResult toRemoveToDoResult(ToDo toDo)
+    {
+        return new RemoveToDoResult(mapper.map(toDo, ToDoDto.class));
+    }
+
+    private Mono<ToDo> deleteToDo(ToDo toDo)
+    {
+        return
+                Mono
+                        .fromCallable(
+                                () -> {
+                                    toDoRepository.delete(toDo);
+
+                                    return toDo;
+                                }
+                        )
+                        .onErrorResume(
+                                OptimisticLockingFailureException.class,
+                                this::wrapException
+                        );
+    }
+
     private Mono<ToDo> saveToDo(ToDo toDo)
     {
         return
@@ -129,11 +209,17 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
                     .fromCallable(() -> toDoRepository.save(toDo))
                     .onErrorResume(
                             OptimisticLockingFailureException.class,
-                            v -> Mono.error(
-                                    new SavingToDoException(
-                                        "Attempt to simultaneously save To-Do against to other clients"
-                                    )
-                            )
+                            this::wrapException
                     );
+    }
+
+    private <T> Mono<T> wrapException(OptimisticLockingFailureException exception)
+    {
+        return
+                Mono.error(
+                    new SavingToDoException(
+                            "Attempt to simultaneously work with To-Do against to other clients"
+                    )
+                );
     }
 }

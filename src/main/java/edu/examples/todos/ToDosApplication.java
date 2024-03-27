@@ -22,6 +22,7 @@ import java.util.Arrays;
     7. Add standard userid/password-based authentication
     8. Add JWT token-based authentication
     9. controller's api-prefix value extract to application.yaml but WebFluxLinkBuilder doesn't resolve SpEL
+    10. Add CQRS service method for getting of the full To-Do's info that is the including sub To-Dos
 
  */
 @SpringBootApplication

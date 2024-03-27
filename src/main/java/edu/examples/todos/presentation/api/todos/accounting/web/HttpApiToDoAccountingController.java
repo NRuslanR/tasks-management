@@ -69,4 +69,12 @@ public class HttpApiToDoAccountingController extends AbstractApiToDoAccountingCo
     {
         return super.updateToDo(toDoId, updateToDoCommand);
     }
+
+    @Override
+    @DeleteMapping(path = "/{toDoId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> removeToDo(@PathVariable("toDoId") String toDoId)
+    {
+        return super.removeToDo(toDoId);
+    }
 }
