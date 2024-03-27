@@ -13,10 +13,10 @@ import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCo
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoResult;
 import edu.examples.todos.usecases.todos.accounting.queries.ToDoAccountingQueryUseCases;
 import edu.examples.todos.usecases.todos.accounting.queries.common.FindObjectsQuery;
-import edu.examples.todos.usecases.todos.accounting.queries.findbyid.GetByIdQuery;
-import edu.examples.todos.usecases.todos.accounting.queries.findbyid.GetByIdResult;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosResult;
+import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
+import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -87,8 +87,8 @@ public abstract class AbstractApiToDoAccountingController implements ApiToDoAcco
     {
         return
                 toDoAccountingQueryUseCases
-                        .getToDoById(new GetByIdQuery(toDoId))
-                        .map(GetByIdResult::getToDo)
+                        .getToDoById(new GetToDoByIdQuery(toDoId))
+                        .map(GetToDoByIdResult::getToDo)
                         .flatMap(this::toResource);
     }
 

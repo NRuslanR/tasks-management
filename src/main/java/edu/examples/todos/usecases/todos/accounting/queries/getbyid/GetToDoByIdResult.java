@@ -1,4 +1,4 @@
-package edu.examples.todos.usecases.todos.accounting.queries.findbyid;
+package edu.examples.todos.usecases.todos.accounting.queries.getbyid;
 
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import lombok.AllArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GetByIdResult
+public class GetToDoByIdResult
 {
     private ToDoDto toDo;
 }

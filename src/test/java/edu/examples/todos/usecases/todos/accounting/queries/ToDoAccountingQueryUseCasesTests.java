@@ -5,10 +5,10 @@ import edu.examples.todos.usecases.todos.accounting.ToDoNotFoundException;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCasesTestsUtils;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
-import edu.examples.todos.usecases.todos.accounting.queries.findbyid.GetByIdQuery;
-import edu.examples.todos.usecases.todos.accounting.queries.findbyid.IncorrectGetByIdQueryException;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.IncorrectFindToDosQueryException;
+import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
+import edu.examples.todos.usecases.todos.accounting.queries.getbyid.IncorrectGetToDoByIdQueryException;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -77,7 +77,7 @@ public abstract class ToDoAccountingQueryUseCasesTests
                 .verifyComplete();
     }
 
-    private GetByIdQuery createFindToDoByIdQuery(String toDoId)
+    private GetToDoByIdQuery createFindToDoByIdQuery(String toDoId)
     {
         return ToDoAccountingQueryUseCasesTestsUtils.createGetByIdQuery(toDoId);
     }
@@ -91,7 +91,7 @@ public abstract class ToDoAccountingQueryUseCasesTests
 
         StepVerifier
             .create(result)
-            .expectError(IncorrectGetByIdQueryException.class)
+            .expectError(IncorrectGetToDoByIdQueryException.class)
             .verify();
     }
 

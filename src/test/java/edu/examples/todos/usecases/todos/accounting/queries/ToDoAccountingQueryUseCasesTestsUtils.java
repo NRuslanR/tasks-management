@@ -2,22 +2,22 @@ package edu.examples.todos.usecases.todos.accounting.queries;
 
 import edu.examples.todos.usecases.todos.accounting.queries.common.FilterQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.common.FindObjectsQuery;
-import edu.examples.todos.usecases.todos.accounting.queries.findbyid.GetByIdQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQuery;
+import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
 import org.springframework.data.domain.PageRequest;
 
 import java.util.Map;
 
 public class ToDoAccountingQueryUseCasesTestsUtils
 {
-    public static GetByIdQuery createGetByIdQuery(String toDoId)
+    public static GetToDoByIdQuery createGetByIdQuery(String toDoId)
     {
-        return new GetByIdQuery(toDoId);
+        return new GetToDoByIdQuery(toDoId);
     }
 
-    public static GetByIdQuery createIncorrectGetByIdQuery()
+    public static GetToDoByIdQuery createIncorrectGetByIdQuery()
     {
-        return new GetByIdQuery();
+        return new GetToDoByIdQuery();
     }
 
     public static FindToDosQuery createQueryToFindAllToDos()

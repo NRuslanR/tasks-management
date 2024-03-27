@@ -3,12 +3,12 @@ package edu.examples.todos.usecases.todos.accounting.queries;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.ToDoNotFoundException;
 import edu.examples.todos.usecases.todos.accounting.queries.common.FilterQuery;
-import edu.examples.todos.usecases.todos.accounting.queries.findbyid.GetByIdQuery;
-import edu.examples.todos.usecases.todos.accounting.queries.findbyid.GetByIdResult;
-import edu.examples.todos.usecases.todos.accounting.queries.findbyid.IncorrectGetByIdQueryException;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosResult;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.IncorrectFindToDosQueryException;
+import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
+import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdResult;
+import edu.examples.todos.usecases.todos.accounting.queries.getbyid.IncorrectGetToDoByIdQueryException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.javatuples.Pair;
@@ -32,20 +32,20 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public Mono<GetByIdResult> getToDoById(@NonNull GetByIdQuery query)
-            throws NullPointerException, IncorrectGetByIdQueryException, ToDoNotFoundException
+    public Mono<GetToDoByIdResult> getToDoById(@NonNull GetToDoByIdQuery query)
+            throws NullPointerException, IncorrectGetToDoByIdQueryException, ToDoNotFoundException
     {
         return
                 ensureGetByIdQueryIsValid(query)
                         .flatMap(this::doGetToDoById);
     }
 
-    private Mono<GetByIdQuery> ensureGetByIdQueryIsValid(GetByIdQuery query)
+    private Mono<GetToDoByIdQuery> ensureGetByIdQueryIsValid(GetToDoByIdQuery query)
     {
-        return StringUtils.hasText(query.getToDoId()) ? Mono.just(query) : Mono.error(new IncorrectGetByIdQueryException());
+        return StringUtils.hasText(query.getToDoId()) ? Mono.just(query) : Mono.error(new IncorrectGetToDoByIdQueryException());
     }
 
-    private Mono<GetByIdResult> doGetToDoById(GetByIdQuery findByIdQuery)
+    private Mono<GetToDoByIdResult> doGetToDoById(GetToDoByIdQuery findByIdQuery)
     {
         /* refactor: use JOOQ instead */
         return
@@ -57,9 +57,9 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
                            findByIdQuery.getToDoId()
                    )
                )
-               .onErrorResume(DataIntegrityViolationException.class, e -> Mono.error(new IncorrectGetByIdQueryException()))
+               .onErrorResume(DataIntegrityViolationException.class, e -> Mono.error(new IncorrectGetToDoByIdQueryException()))
                .onErrorResume(EmptyResultDataAccessException.class, e -> Mono.error(new ToDoNotFoundException()))
-               .map(GetByIdResult::new);
+               .map(GetToDoByIdResult::new);
     }
 
     @Override
