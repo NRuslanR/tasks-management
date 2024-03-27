@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping(path = "/todos")
+@RequestMapping(path = "/api/todos")
 @CrossOrigin
 public class HttpApiToDoAccountingController extends AbstractApiToDoAccountingController
 {

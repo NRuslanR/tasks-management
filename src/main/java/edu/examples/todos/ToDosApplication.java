@@ -21,6 +21,7 @@ import java.util.Arrays;
         in the controllers' returned resources
     7. Add standard userid/password-based authentication
     8. Add JWT token-based authentication
+    9. controller's api-prefix value extract to application.yaml but WebFluxLinkBuilder doesn't resolve SpEL
 
  */
 @SpringBootApplication
