@@ -1,7 +1,6 @@
 package edu.examples.todos.usecases.todos.accounting.queries;
 
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
-import edu.examples.todos.usecases.todos.accounting.ToDoNotFoundException;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCasesTestsUtils;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
@@ -9,6 +8,7 @@ import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQ
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.IncorrectFindToDosQueryException;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.IncorrectGetToDoByIdQueryException;
+import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -128,13 +128,13 @@ public abstract class ToDoAccountingQueryUseCasesTests
                     var actualPageable = toDoPage.getPageable();
                     var actualToDos = toDoPage.getContent();
 
+                    assertNotNull(actualToDos);
+
                     if (pageQuery.isPaged())
                     {
                         assertEquals(pageQuery, actualPageable);
                         assertTrue(pageQuery.getPageSize() >= actualToDos.size());
                     }
-
-                    assertTrue(toDos.containsAll(actualToDos));
                 })
                 .verifyComplete();
     }

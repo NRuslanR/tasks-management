@@ -4,15 +4,18 @@ import edu.examples.todos.domain.common.entities.identities.EntityId;
 import jakarta.persistence.Column;
 import lombok.Data;
 import lombok.NonNull;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.util.Objects;
 import java.util.UUID;
 
 @Data
 public class ToDoId extends EntityId<ToDoId>
 {
-    @Column(name = "id")
     @NonNull
+    @Column(name = "id")
+    @JdbcTypeCode(Types.VARCHAR)
     private UUID value;
 
     public static ToDoId of(String value)
@@ -51,5 +54,10 @@ public class ToDoId extends EntityId<ToDoId>
     public int hashCode()
     {
         return Objects.hash(value);
+    }
+
+    public String asString()
+    {
+        return value.toString();
     }
 }

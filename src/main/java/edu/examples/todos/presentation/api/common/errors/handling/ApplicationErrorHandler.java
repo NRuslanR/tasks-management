@@ -4,12 +4,14 @@ import edu.examples.todos.presentation.api.common.errors.ApplicationError;
 import edu.examples.todos.presentation.api.common.exceptions.ApiException;
 import edu.examples.todos.usecases.common.exceptions.UseCasesException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @ControllerAdvice
+@Order
 @Slf4j
 public class ApplicationErrorHandler extends ResponseEntityExceptionHandler
 {

@@ -1,4 +1,4 @@
-package edu.examples.todos.usecases.todos.accounting;
+package edu.examples.todos.usecases.todos.accounting.commands.create;
 
 import edu.examples.todos.usecases.common.exceptions.UseCasesException;
 

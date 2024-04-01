@@ -19,4 +19,5 @@ public class ToDoDto
     private String name;
     private String description;
     private LocalDateTime createdAt;
+    private String parentToDoId;
 }

@@ -1,12 +1,15 @@
 package edu.examples.todos.usecases.todos.accounting.commands;
 
-import edu.examples.todos.usecases.todos.accounting.ToDoAlreadyExistsException;
-import edu.examples.todos.usecases.todos.accounting.ToDoNotFoundException;
+import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
 import edu.examples.todos.usecases.todos.accounting.commands.create.IncorrectCreateToDoCommandException;
+import edu.examples.todos.usecases.todos.accounting.commands.create.ToDoAlreadyExistsException;
+import edu.examples.todos.usecases.todos.accounting.commands.remove.IncorrectRemoveToDoCommandException;
+import edu.examples.todos.usecases.todos.accounting.commands.remove.RemoveToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.IncorrectUpdateToDoCommandException;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
+import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.javatuples.KeyValue;
 import org.junit.jupiter.api.Test;
@@ -18,34 +21,23 @@ import org.junit.platform.commons.util.StringUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
 import static edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCasesTestsUtils.createSimpleIncorrectCommandForToDoCreating;
+import static edu.examples.todos.usecases.todos.common.data.generating.ToDoInfoGeneratingUtils.generateRandomToDoName;
 import static org.junit.jupiter.api.Assertions.*;
 
-@RequiredArgsConstructor
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@RequiredArgsConstructor
 public abstract class ToDoAccountingCommandUseCasesTests
 {
     protected final ToDoAccountingCommandUseCases toDoAccountingCommandUseCases;
-
-    private enum ToDoNameUseCases { CREATE, UPDATE, UPDATE_WITH_INCORRECT_COMMAND, REMOVE, ALREADY_EXISTS }
-
-    private Map<ToDoNameUseCases, String> testToDoNames =
-            Map.of(
-                    ToDoNameUseCases.CREATE, "To-Do#1",
-                    ToDoNameUseCases.UPDATE, "To-Do#2",
-                    ToDoNameUseCases.UPDATE_WITH_INCORRECT_COMMAND, "To-Do#3",
-                    ToDoNameUseCases.REMOVE, "To-Do#4",
-                    ToDoNameUseCases.ALREADY_EXISTS, "To-Do#5"
-            );
-
+    
     @Test
     public void should_Create_ToDo_When_CreateToDoCommand_IsCorrect_And_ToDoDoesNotExistsYet()
     {
-        var commandResultPair = createToDo(testToDoNames.get(ToDoNameUseCases.CREATE));
+        var commandResultPair = runCreateRandomToDoCommandFor();
 
         var command = commandResultPair.getKey();
         var result = commandResultPair.getValue();
@@ -83,14 +75,14 @@ public abstract class ToDoAccountingCommandUseCasesTests
     @Test
     public void should_ThrowException_When_ToDoAlreadyExists()
     {
-        var toDoName = testToDoNames.get(ToDoNameUseCases.ALREADY_EXISTS);
+        var toDoName = generateRandomToDoName();
 
         var result =
-                createToDo(toDoName)
+                runCreateToDoCommandFor(toDoName)
                         .getValue()
                         .then(
                                 Mono.defer(
-                                        () -> createToDo(toDoName).getValue()
+                                        () -> runCreateToDoCommandFor(toDoName).getValue()
                                 )
                         );
 
@@ -103,13 +95,9 @@ public abstract class ToDoAccountingCommandUseCasesTests
     @Test
     public void should_UpdateToDo_When_UpdateToDoCommand_IsCorrect_And_ToDoExists()
     {
-        var toDoName = testToDoNames.get(ToDoNameUseCases.UPDATE);
-
-        var createToDoResult = createToDo(toDoName).getValue().block();
-
         var updateToDoCommand =
                 ToDoAccountingCommandUseCasesTestsUtils.createSimpleCommandForToDoUpdating(
-                        createToDoResult.getToDo().getId()
+                        createToDo(generateRandomToDoName()).getId()
                 );
 
         var updateToDoResult = toDoAccountingCommandUseCases.updateToDo(updateToDoCommand);
@@ -144,13 +132,7 @@ public abstract class ToDoAccountingCommandUseCasesTests
 
     public Stream<Arguments> createIncorrectCommandsForToDoUpdating()
     {
-        var toDoId =
-            createToDo(testToDoNames.get(ToDoNameUseCases.UPDATE_WITH_INCORRECT_COMMAND))
-                .getValue()
-                .block()
-                .getToDo()
-                .getId();
-
+        var toDoId = createToDo(generateRandomToDoName()).getId();
 
         return Stream.of(
                 Arguments.of(
@@ -180,14 +162,9 @@ public abstract class ToDoAccountingCommandUseCasesTests
     @Test
     public void should_RemoveToDo_When_RemoveToDoCommand_IsCorrect_And_ToDoExists()
     {
-        var toDoId =
-                createToDo(testToDoNames.get(ToDoNameUseCases.REMOVE))
-                        .getValue()
-                        .block()
-                        .getToDo()
-                        .getId();
+        var toDoId = createToDo(generateRandomToDoName()).getId();
 
-        var command = ToDoAccountingCommandUseCasesTestsUtils.createSimpleCommandForToDoRemoving(toDoId);
+        var command = ToDoAccountingCommandUseCasesTestsUtils.createCommandForToDoRemoving(toDoId);
 
         var result = toDoAccountingCommandUseCases.removeToDo(command);
 
@@ -213,7 +190,49 @@ public abstract class ToDoAccountingCommandUseCasesTests
                 .verifyComplete();
     }
 
-    private KeyValue<CreateToDoCommand, Mono<CreateToDoResult>> createToDo(String toDoName)
+    @Test
+    public void should_ThrowException_When_RemoveToDoCommand_IsInCorrect()
+    {
+        var incorrectCommand = new RemoveToDoCommand();
+
+        var result = toDoAccountingCommandUseCases.removeToDo(incorrectCommand);
+
+        StepVerifier
+                .create(result)
+                .expectError(IncorrectRemoveToDoCommandException.class)
+                .verify();
+    }
+
+    @Test
+    public void should_ThrowException_When_ToDoDoesNotExist_To_Be_Removed()
+    {
+        var command =
+                ToDoAccountingCommandUseCasesTestsUtils
+                        .createCommandForToDoRemoving(UUID.randomUUID().toString());
+
+        var result = toDoAccountingCommandUseCases.removeToDo(command);
+
+        StepVerifier
+                .create(result)
+                .expectError(ToDoNotFoundException.class)
+                .verify();
+    }
+
+    public ToDoDto createToDo(String toDoName)
+    {
+        return
+                runCreateToDoCommandFor(toDoName)
+                        .getValue()
+                        .block()
+                        .getToDo();
+    }
+
+    private KeyValue<CreateToDoCommand, Mono<CreateToDoResult>> runCreateRandomToDoCommandFor()
+    {
+        return runCreateToDoCommandFor(generateRandomToDoName());
+    }
+
+    private KeyValue<CreateToDoCommand, Mono<CreateToDoResult>> runCreateToDoCommandFor(String toDoName)
     {
         var command = ToDoAccountingCommandUseCasesTestsUtils.createSimpleCommandForToDoCreating(toDoName);
 

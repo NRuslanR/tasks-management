@@ -1,8 +1,9 @@
-package edu.examples.todos.presentation.api.todos.accounting.web.resources;
+package edu.examples.todos.presentation.api.todos.common.resources.web;
 
-import edu.examples.todos.presentation.api.todos.accounting.common.resources.ToDoResource;
-import edu.examples.todos.presentation.api.todos.accounting.common.resources.ToDoResourceAssembler;
 import edu.examples.todos.presentation.api.todos.accounting.web.HttpApiToDoAccountingController;
+import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
+import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
+import edu.examples.todos.presentation.api.todos.relationships.web.HttpApiToDoRelationshipsController;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,10 @@ public class HttpToDoResourceAssembler extends ToDoResourceAssembler
             ).withRel("update").toMono().block(),
             linkTo(
                     methodOn(HttpApiToDoAccountingController.class).removeToDo(toDoDto.getId())
-            ).withRel("remove").toMono().block()
+            ).withRel("remove").toMono().block(),
+            linkTo(
+                    methodOn(HttpApiToDoRelationshipsController.class).assignToDoParent(toDoDto.getId(), null)
+            ).withRel("assign-parent").toMono().block()
         );
     }
 

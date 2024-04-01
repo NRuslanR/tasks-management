@@ -1,7 +1,6 @@
 package edu.examples.todos.usecases.todos.accounting.queries;
 
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
-import edu.examples.todos.usecases.todos.accounting.ToDoNotFoundException;
 import edu.examples.todos.usecases.todos.accounting.queries.common.FilterQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosResult;
@@ -9,7 +8,7 @@ import edu.examples.todos.usecases.todos.accounting.queries.findtodos.IncorrectF
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdResult;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.IncorrectGetToDoByIdQueryException;
-import lombok.NonNull;
+import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.javatuples.Pair;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -24,7 +23,14 @@ import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Objects;
 
+/*
+    CQRS-based use-cases service implementation
+ */
+/*
+    refactor: JOOQ use and extract throws list in doc-comment due to Monos
+ */
 @Service
 @RequiredArgsConstructor
 public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCases
@@ -32,7 +38,7 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public Mono<GetToDoByIdResult> getToDoById(@NonNull GetToDoByIdQuery query)
+    public Mono<GetToDoByIdResult> getToDoById(GetToDoByIdQuery query)
             throws NullPointerException, IncorrectGetToDoByIdQueryException, ToDoNotFoundException
     {
         return
@@ -42,7 +48,13 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
 
     private Mono<GetToDoByIdQuery> ensureGetByIdQueryIsValid(GetToDoByIdQuery query)
     {
-        return StringUtils.hasText(query.getToDoId()) ? Mono.just(query) : Mono.error(new IncorrectGetToDoByIdQueryException());
+        return
+                Mono
+                    .fromCallable(() -> Objects.requireNonNull(query))
+                    .flatMap(v ->
+                            StringUtils.hasText(query.getToDoId()) ? Mono.just(query) :
+                                    Mono.error(new IncorrectGetToDoByIdQueryException())
+                    );
     }
 
     private Mono<GetToDoByIdResult> doGetToDoById(GetToDoByIdQuery findByIdQuery)
@@ -63,7 +75,7 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
     }
 
     @Override
-    public Mono<FindToDosResult> findToDos(@NonNull FindToDosQuery query)
+    public Mono<FindToDosResult> findToDos(FindToDosQuery query)
     {
         return
                 ensureFindToDosQueryIsValid(query)
@@ -73,14 +85,18 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
     private Mono<FindToDosQuery> ensureFindToDosQueryIsValid(FindToDosQuery query)
     {
         return
-                !query.getFilterQuery().isEmpty() &&
-                !query
-                    .getFilterQuery()
-                    .getFields()
-                    .keySet()
-                    .stream()
-                    .allMatch(StringUtils::hasText) ?
-                        Mono.error(new IncorrectFindToDosQueryException()) : Mono.just(query);
+                Mono
+                    .fromCallable(() -> Objects.requireNonNull(query))
+                    .flatMap(v ->
+                        !query.getFilterQuery().isEmpty() &&
+                        !query
+                            .getFilterQuery()
+                            .getFields()
+                            .keySet()
+                            .stream()
+                            .allMatch(StringUtils::hasText) ?
+                                Mono.error(new IncorrectFindToDosQueryException()) : Mono.just(query)
+                    );
     }
 
     private Mono<FindToDosResult> doFindToDos(FindToDosQuery query)

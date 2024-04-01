@@ -7,7 +7,9 @@ import edu.examples.todos.persistence.repositories.common.FakeEntityRepository;
 import edu.examples.todos.persistence.repositories.todos.ToDoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @UnitTestsProfile
 @Repository
@@ -17,5 +19,11 @@ public class FakeToDoRepository extends FakeEntityRepository<ToDo, ToDoId> imple
     public Optional<ToDo> findByName(String name)
     {
         return entities.stream().filter(e -> e.getName().equals(name)).findFirst();
+    }
+
+    @Override
+    public List<ToDo> findAllSubToDosRecursivelyFor(UUID toDoId)
+    {
+        throw new UnsupportedOperationException();
     }
 }

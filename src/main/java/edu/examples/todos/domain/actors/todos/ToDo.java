@@ -45,7 +45,6 @@ public class ToDo extends BaseEntity<ToDoId>
 
     private String name;
 
-    /* refactor: create domain service to change To-Do's state (name) in order to it was consistent to others */
     public void setName(String newName) throws ToDoNameInCorrectException
     {
         if (!StringUtils.hasText(newName))
@@ -89,5 +88,19 @@ public class ToDo extends BaseEntity<ToDoId>
         return value.withNano(0);
     }
 
+    /* refactor: */
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(
+                    name = "value",
+                    column = @Column(name = "parentToDoId")
+            )
+    })
+    /*
+        In most use-cases sub-todos aren't required so in order to fall not into
+        N + 1 problem and for performance this solution is used. Lazy makes To-Do model and tracing more complex
+        and EntityGraph fetches redundant data that's question is why are sub-todos necessary if just
+        current To-Do's name is required to change. This DDD approach
+     */
     private ToDoId parentToDoId;
 }

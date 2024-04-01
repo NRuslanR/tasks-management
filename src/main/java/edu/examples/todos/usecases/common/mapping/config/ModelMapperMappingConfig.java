@@ -9,6 +9,8 @@ import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Objects;
+
 @Configuration
 public class ModelMapperMappingConfig
 {
@@ -46,10 +48,16 @@ public class ModelMapperMappingConfig
         Converter<ToDoId, String> idConverter =
             ctx -> {
 
+                if (Objects.isNull(ctx.getSource()))
+                    return "";
+
                 return ctx.getSource().getValue().toString();
 
             };
 
-        toDoDtoMap.addMappings(m -> m.using(idConverter).map(ToDo::getId, ToDoDto::setId));
+        toDoDtoMap.addMappings(m -> {
+            m.using(idConverter).map(ToDo::getId, ToDoDto::setId);
+            m.using(idConverter).map(ToDo::getParentToDoId, ToDoDto::setParentToDoId);
+        });
     }
 }

@@ -1,9 +1,9 @@
 package edu.examples.todos.presentation.api.todos.accounting.web;
 
 import edu.examples.todos.presentation.api.common.config.ApiPaginationConfiguration;
-import edu.examples.todos.presentation.api.todos.accounting.common.AbstractApiToDoAccountingController;
-import edu.examples.todos.presentation.api.todos.accounting.common.resources.ToDoResource;
-import edu.examples.todos.presentation.api.todos.accounting.common.resources.ToDoResourceAssembler;
+import edu.examples.todos.presentation.api.todos.accounting.AbstractApiToDoAccountingController;
+import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
+import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;

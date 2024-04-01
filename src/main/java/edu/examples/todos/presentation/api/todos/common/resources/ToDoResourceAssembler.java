@@ -1,4 +1,4 @@
-package edu.examples.todos.presentation.api.todos.accounting.common.resources;
+package edu.examples.todos.presentation.api.todos.common.resources;
 
 import edu.examples.todos.presentation.api.common.resources.assemblers.LinkedRepresentationModelAssemblerSupport;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;

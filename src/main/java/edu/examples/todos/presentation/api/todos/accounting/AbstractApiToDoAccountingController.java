@@ -1,10 +1,9 @@
-package edu.examples.todos.presentation.api.todos.accounting.common;
+package edu.examples.todos.presentation.api.todos.accounting;
 
 import edu.examples.todos.presentation.api.common.config.ApiPaginationConfiguration;
-import edu.examples.todos.presentation.api.todos.accounting.common.resources.ToDoResource;
-import edu.examples.todos.presentation.api.todos.accounting.common.resources.ToDoResourceAssembler;
+import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
+import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
-import edu.examples.todos.usecases.todos.accounting.ToDoNotFoundException;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
@@ -17,6 +16,7 @@ import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQ
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosResult;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdResult;
+import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

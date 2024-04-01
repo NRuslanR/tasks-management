@@ -24,8 +24,13 @@ import java.util.Arrays;
     9. controller's api-prefix value extract to application.yaml but WebFluxLinkBuilder doesn't resolve SpEL
     10. Add CQRS service method for getting of the full To-Do's info that is the including sub To-Dos
     11. Add assign To-Do's parent feature
-
+    12. Turn into to To-Dos microservice (
+            API Gateway, two microservices - business and cqrs, Kafka, RabbitMQ,
+            Spring Cloud dependencies, Consumer Driven Tests, Eventuate Tram framework,
+            Transactional Outbox, Transactional log tailing and more and more
+        )
  */
+
 @SpringBootApplication
 @Slf4j
 public class ToDosApplication implements CommandLineRunner
