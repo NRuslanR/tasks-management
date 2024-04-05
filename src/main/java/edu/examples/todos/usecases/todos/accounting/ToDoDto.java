@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Data
 @NoArgsConstructor
@@ -20,4 +21,9 @@ public class ToDoDto
     private String description;
     private LocalDateTime createdAt;
     private String parentToDoId;
+
+    public void setParentToDoId(String value)
+    {
+        parentToDoId = Optional.ofNullable(value).orElse("");
+    }
 }

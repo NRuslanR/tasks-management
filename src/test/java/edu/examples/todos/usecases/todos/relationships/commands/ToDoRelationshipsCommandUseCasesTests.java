@@ -15,9 +15,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.UUID;
 import java.util.stream.Stream;
 
+import static edu.examples.todos.usecases.todos.common.data.generating.ToDoInfoGeneratingUtils.generateRandomToDoId;
 import static edu.examples.todos.usecases.todos.common.data.generating.ToDoInfoGeneratingUtils.generateRandomToDoName;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -74,15 +74,15 @@ public abstract class ToDoRelationshipsCommandUseCasesTests
             return
                     Stream.of(
                             Arguments.of(new AssignToDoParentCommand()),
-                            Arguments.of(new AssignToDoParentCommand(null, UUID.randomUUID().toString())),
-                            Arguments.of(new AssignToDoParentCommand(UUID.randomUUID().toString(), null))
+                            Arguments.of(new AssignToDoParentCommand(null, generateRandomToDoId())),
+                            Arguments.of(new AssignToDoParentCommand(generateRandomToDoId(), null))
                     );
     }
 
     @Test
     public void should_ThrowException_When_TargetOrParentToDos_NotFound()
     {
-        var command = new AssignToDoParentCommand(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+        var command = new AssignToDoParentCommand(generateRandomToDoId(), generateRandomToDoId());
 
         var result = toDoRelationshipsCommandUseCases.assignToDoParent(command);
 

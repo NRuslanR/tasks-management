@@ -1,9 +1,12 @@
 package edu.examples.todos.presentation.api.todos.accounting;
 
 import edu.examples.todos.presentation.api.common.config.ApiPaginationConfiguration;
+import edu.examples.todos.presentation.api.todos.common.resources.ToDoFullInfoResource;
+import edu.examples.todos.presentation.api.todos.common.resources.ToDoFullInfoResourceAssembler;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
+import edu.examples.todos.usecases.todos.accounting.ToDoFullInfoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
@@ -16,6 +19,8 @@ import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQ
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosResult;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdResult;
+import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.GetToDoFullInfoByIdQuery;
+import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.GetToDoFullInfoByIdResult;
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,10 +41,13 @@ public abstract class AbstractApiToDoAccountingController implements ApiToDoAcco
 
     private final ToDoResourceAssembler toDoResourceAssembler;
 
+    private final ToDoFullInfoResourceAssembler toDoFullInfoResourceAssembler;
+
     private final PagedResourcesAssembler<ToDoDto> pagedToDoResourceAssembler;
 
     private final ApiPaginationConfiguration paginationConfig;
 
+    @Override
     public Mono<PagedModel<ToDoResource>> findToDos(
             Optional<Integer> page,
             Optional<Integer> size,
@@ -83,6 +91,7 @@ public abstract class AbstractApiToDoAccountingController implements ApiToDoAcco
         );
     }
 
+    @Override
     public Mono<ToDoResource> getToDoById(String toDoId)
     {
         return
@@ -90,6 +99,21 @@ public abstract class AbstractApiToDoAccountingController implements ApiToDoAcco
                         .getToDoById(new GetToDoByIdQuery(toDoId))
                         .map(GetToDoByIdResult::getToDo)
                         .flatMap(this::toResource);
+    }
+
+    @Override
+    public Mono<ToDoFullInfoResource> getToDoFullInfoById(String toDoId)
+    {
+        return
+                toDoAccountingQueryUseCases
+                        .getToDoFullInfoById(new GetToDoFullInfoByIdQuery(toDoId))
+                        .map(GetToDoFullInfoByIdResult::getToDoFullInfo)
+                        .flatMap(this::toToDoFullInfoResource);
+    }
+
+    private Mono<ToDoFullInfoResource> toToDoFullInfoResource(ToDoFullInfoDto toDoFullInfoDto)
+    {
+        return Mono.fromCallable(() -> toDoFullInfoResourceAssembler.toModel(toDoFullInfoDto));
     }
 
     public Mono<ToDoResource> createToDo(CreateToDoCommand createToDoCommand)

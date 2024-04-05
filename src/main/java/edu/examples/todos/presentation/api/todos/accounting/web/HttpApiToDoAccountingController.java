@@ -2,6 +2,8 @@ package edu.examples.todos.presentation.api.todos.accounting.web;
 
 import edu.examples.todos.presentation.api.common.config.ApiPaginationConfiguration;
 import edu.examples.todos.presentation.api.todos.accounting.AbstractApiToDoAccountingController;
+import edu.examples.todos.presentation.api.todos.common.resources.ToDoFullInfoResource;
+import edu.examples.todos.presentation.api.todos.common.resources.ToDoFullInfoResourceAssembler;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
@@ -23,15 +25,23 @@ import java.util.Optional;
 @CrossOrigin
 public class HttpApiToDoAccountingController extends AbstractApiToDoAccountingController
 {
+
     public HttpApiToDoAccountingController(
             ToDoAccountingQueryUseCases toDoAccountingQueryUseCases,
             ToDoAccountingCommandUseCases toDoAccountingCommandUseCases,
             ToDoResourceAssembler toDoResourceAssembler,
-            PagedResourcesAssembler<ToDoDto> pagedToDoResourcesAssembler,
-            ApiPaginationConfiguration paginationConfig
-    )
+            ToDoFullInfoResourceAssembler toDoFullInfoResourceAssembler,
+            PagedResourcesAssembler<ToDoDto> pagedToDoResourceAssembler,
+            ApiPaginationConfiguration paginationConfig)
     {
-        super(toDoAccountingQueryUseCases, toDoAccountingCommandUseCases, toDoResourceAssembler, pagedToDoResourcesAssembler, paginationConfig);
+        super(
+                toDoAccountingQueryUseCases,
+                toDoAccountingCommandUseCases,
+                toDoResourceAssembler,
+                toDoFullInfoResourceAssembler,
+                pagedToDoResourceAssembler,
+                paginationConfig
+        );
     }
 
     @Override
@@ -50,6 +60,13 @@ public class HttpApiToDoAccountingController extends AbstractApiToDoAccountingCo
     public Mono<ToDoResource> getToDoById(@PathVariable("toDoId") String toDoId)
     {
         return super.getToDoById(toDoId);
+    }
+
+    @Override
+    @GetMapping(path = "/{toDoId}/full-info")
+    public Mono<ToDoFullInfoResource> getToDoFullInfoById(@PathVariable("toDoId") String toDoId)
+    {
+        return super.getToDoFullInfoById(toDoId);
     }
 
     @Override

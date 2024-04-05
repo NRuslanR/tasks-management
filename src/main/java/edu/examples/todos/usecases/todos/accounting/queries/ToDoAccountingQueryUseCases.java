@@ -6,6 +6,9 @@ import edu.examples.todos.usecases.todos.accounting.queries.findtodos.IncorrectF
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdResult;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.IncorrectGetToDoByIdQueryException;
+import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.GetToDoFullInfoByIdQuery;
+import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.GetToDoFullInfoByIdResult;
+import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.IncorrectGetToDoFullInfoByIdQueryException;
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
 import reactor.core.publisher.Mono;
 
@@ -20,4 +23,7 @@ public interface ToDoAccountingQueryUseCases
 
     Mono<FindToDosResult> findToDos(FindToDosQuery query)
             throws NullPointerException, IncorrectFindToDosQueryException;
+
+    Mono<GetToDoFullInfoByIdResult> getToDoFullInfoById(GetToDoFullInfoByIdQuery query)
+            throws NullPointerException, IncorrectGetToDoFullInfoByIdQueryException, ToDoNotFoundException;
 }

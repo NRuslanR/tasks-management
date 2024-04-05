@@ -18,6 +18,11 @@ public class ToDoInfoGeneratingUtils
 
     public static String generateRandomToDoName()
     {
+        return generateRandomToDoId();
+    }
+
+    public static String generateRandomToDoId()
+    {
         return UUID.randomUUID().toString();
     }
 }

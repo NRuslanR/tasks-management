@@ -27,8 +27,10 @@ public class HttpToDoResourceAssembler extends ToDoResourceAssembler
         resource.add(
             linkTo(
                     methodOn(HttpApiToDoAccountingController.class).getToDoById(toDoDto.getId())
-            )
-            .withSelfRel().toMono().block(),
+            ).withSelfRel().toMono().block(),
+            linkTo(
+                    methodOn(HttpApiToDoAccountingController.class).getToDoFullInfoById(toDoDto.getId())
+            ).withRel("full-info").toMono().block(),
             linkTo(
                     methodOn(HttpApiToDoAccountingController.class).updateToDo(toDoDto.getId(), null)
             ).withRel("update").toMono().block(),

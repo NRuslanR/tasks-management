@@ -12,6 +12,7 @@ import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCo
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.javatuples.KeyValue;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,10 +22,10 @@ import org.junit.platform.commons.util.StringUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCasesTestsUtils.createSimpleIncorrectCommandForToDoCreating;
+import static edu.examples.todos.usecases.todos.common.data.generating.ToDoInfoGeneratingUtils.generateRandomToDoId;
 import static edu.examples.todos.usecases.todos.common.data.generating.ToDoInfoGeneratingUtils.generateRandomToDoName;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -33,7 +34,13 @@ import static org.junit.jupiter.api.Assertions.*;
 public abstract class ToDoAccountingCommandUseCasesTests
 {
     protected final ToDoAccountingCommandUseCases toDoAccountingCommandUseCases;
-    
+
+    @AfterAll
+    public void clearFixtureForAll()
+    {
+
+    }
+
     @Test
     public void should_Create_ToDo_When_CreateToDoCommand_IsCorrect_And_ToDoDoesNotExistsYet()
     {
@@ -149,7 +156,7 @@ public abstract class ToDoAccountingCommandUseCasesTests
     {
         var command =
                 ToDoAccountingCommandUseCasesTestsUtils
-                        .createSimpleCommandForToDoUpdating(UUID.randomUUID().toString());
+                        .createSimpleCommandForToDoUpdating(generateRandomToDoId());
 
         var result = toDoAccountingCommandUseCases.updateToDo(command);
 
@@ -208,7 +215,7 @@ public abstract class ToDoAccountingCommandUseCasesTests
     {
         var command =
                 ToDoAccountingCommandUseCasesTestsUtils
-                        .createCommandForToDoRemoving(UUID.randomUUID().toString());
+                        .createCommandForToDoRemoving(generateRandomToDoId());
 
         var result = toDoAccountingCommandUseCases.removeToDo(command);
 

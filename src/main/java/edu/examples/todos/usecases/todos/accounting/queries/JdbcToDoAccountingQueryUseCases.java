@@ -1,6 +1,9 @@
 package edu.examples.todos.usecases.todos.accounting.queries;
 
+import edu.examples.todos.common.util.DataTransforms;
+import edu.examples.todos.common.util.HierarchicalItem;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
+import edu.examples.todos.usecases.todos.accounting.ToDoFullInfoDto;
 import edu.examples.todos.usecases.todos.accounting.queries.common.FilterQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosResult;
@@ -8,6 +11,9 @@ import edu.examples.todos.usecases.todos.accounting.queries.findtodos.IncorrectF
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdResult;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.IncorrectGetToDoByIdQueryException;
+import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.GetToDoFullInfoByIdQuery;
+import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.GetToDoFullInfoByIdResult;
+import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.IncorrectGetToDoFullInfoByIdQueryException;
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.javatuples.Pair;
@@ -22,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 
+import java.sql.SQLSyntaxErrorException;
 import java.util.List;
 import java.util.Objects;
 
@@ -120,6 +127,8 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
                         whereFieldValues(query.getFilterQuery())
                     )
                 )
+                .onErrorResume(DataIntegrityViolationException.class, e -> Mono.error(new IncorrectFindToDosQueryException()))
+                .onErrorResume(SQLSyntaxErrorException.class, e -> Mono.error(new IncorrectFindToDosQueryException()))
                 .flatMap(
                         v -> Mono.just(
                             new Pair<List<ToDoDto>, Long>(
@@ -169,5 +178,85 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
         /* refactor: LIMIT is non-universal sql clause, use JOOQ to resolve that */
         return
             pageQuery.isPaged()  ? "LIMIT " + pageQuery.getPageSize() + "OFFSET " + pageQuery.getOffset() : "";
+    }
+
+    @Override
+    public Mono<GetToDoFullInfoByIdResult> getToDoFullInfoById(GetToDoFullInfoByIdQuery query)
+            throws NullPointerException, IncorrectGetToDoFullInfoByIdQueryException, ToDoNotFoundException
+    {
+        return
+                ensureGetToDoFullInfoByIdQueryIsValid(query)
+                        .flatMap(this::doGetToDoFullInfoById);
+    }
+
+    private Mono<GetToDoFullInfoByIdQuery> ensureGetToDoFullInfoByIdQueryIsValid(GetToDoFullInfoByIdQuery query)
+    {
+        return
+                Mono
+                    .fromCallable(() -> Objects.requireNonNull(query))
+                    .map(v -> {
+
+                        if (StringUtils.hasText(query.getToDoId()))
+                            return v;
+
+                        throw new IncorrectGetToDoFullInfoByIdQueryException();
+                    });
+    }
+
+    private Mono<GetToDoFullInfoByIdResult> doGetToDoFullInfoById(GetToDoFullInfoByIdQuery getToDoFullInfoById)
+    {
+        return
+                getAllToDosRecursivelyStartingWith(getToDoFullInfoById.getToDoId())
+                        .map(this::toGetToDoFullInfoByIdResult);
+    }
+
+    private Mono<List<ToDoDto>> getAllToDosRecursivelyStartingWith(String toDoId)
+    {
+        return
+                Mono.fromCallable(
+                        () ->
+                                jdbcTemplate.query(
+                                        "WITH RECURSIVE get_all_sub_todos(id) AS (" +
+                                                "SELECT id FROM todos WHERE id = ? " +
+                                                "UNION " +
+                                                "SELECT t.id FROM todos t " +
+                                                "JOIN get_all_sub_todos st ON t.parentToDoId = st.id " +
+                                                ") SELECT t.* FROM get_all_sub_todos st " +
+                                                "JOIN todos t ON st.id = t.id",
+                                        new DataClassRowMapper<>(ToDoDto.class),
+                                        toDoId
+                                )
+                )
+                .onErrorResume(
+                        DataIntegrityViolationException.class,
+                        e -> Mono.error(new IncorrectGetToDoFullInfoByIdQueryException())
+                )
+                .flatMap(
+                    v -> !v.isEmpty() ? Mono.just(v) : Mono.error(new ToDoNotFoundException())
+                );
+    }
+
+    private GetToDoFullInfoByIdResult toGetToDoFullInfoByIdResult(List<ToDoDto> toDoDtos)
+    {
+        return new GetToDoFullInfoByIdResult(
+            DataTransforms
+                .transformFlatDataToHierarchical(
+                        toDoDtos,
+                        "parentToDoId",
+                        "id"
+                )
+                .stream()
+                .map(this::toToDoFullInfoDto)
+                .findFirst()
+                .get()
+        );
+    }
+
+    private ToDoFullInfoDto toToDoFullInfoDto(HierarchicalItem<ToDoDto> item)
+    {
+        return new ToDoFullInfoDto(
+                item.getItem(),
+                item.getSubItems().stream().map(this::toToDoFullInfoDto).toList()
+        );
     }
 }

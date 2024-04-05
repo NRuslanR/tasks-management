@@ -1,5 +1,6 @@
 package edu.examples.todos.presentation.api.todos.accounting;
 
+import edu.examples.todos.presentation.api.todos.common.resources.ToDoFullInfoResource;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
@@ -18,6 +19,8 @@ public interface ApiToDoAccountingController
     );
 
     Mono<ToDoResource> getToDoById(String toDoId);
+
+    Mono<ToDoFullInfoResource> getToDoFullInfoById(String toDoId);
 
     Mono<ToDoResource> createToDo(CreateToDoCommand createToDoCommand);
 
