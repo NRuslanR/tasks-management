@@ -27,6 +27,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -56,12 +57,26 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
 
     private Mono<CreateToDoCommand> ensureCreateToDoCommandIsValid(CreateToDoCommand command)
     {
-        return Mono.fromCallable(() -> Objects.requireNonNull(command));
+        return Mono.fromCallable(
+                () -> {
+                    var cmd = Objects.requireNonNull(command);
+
+                    throwIfPriorityTypeValueCombinationIsInCorrect(cmd.getPriorityType(), cmd.getPriorityValue());
+
+                    return cmd;
+                }
+        );
     }
 
     private Mono<CreateToDoRequest> toCreateToDoRequest(CreateToDoCommand createToDoCommand)
     {
-        return Mono.just(mapper.map(createToDoCommand, CreateToDoRequest.class));
+        return
+                Mono
+                    .fromCallable(() -> mapper.map(createToDoCommand, CreateToDoRequest.class))
+                        .onErrorResume(
+                                DomainException.class,
+                                e -> Mono.error(new IncorrectCreateToDoCommandException(e.getMessage()))
+                        );
     }
 
     private Mono<CreateToDoReply> doCreateToDo(CreateToDoRequest createToDoRequest)
@@ -87,7 +102,7 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
 
     private Mono<CreateToDoResult> toCreateToDoCommandResultAsync(CreateToDoReply reply)
     {
-        return Mono.just(mapper.map(reply, CreateToDoResult.class));
+        return Mono.fromCallable(() -> mapper.map(reply, CreateToDoResult.class));
     }
 
     @Override
@@ -115,7 +130,12 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
                             if (StringUtils.hasText(v.getToDoId()))
                                 return v;
 
+                            throwIfPriorityTypeValueCombinationIsInCorrect(
+                                    v.getPriorityType(), v.getPriorityValue()
+                            );
+
                             throw new IncorrectUpdateToDoCommandException("Incorrect To-Do id to update");
+
                         });
     }
 
@@ -211,5 +231,17 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
     private Mono<ToDo> saveToDo(ToDo toDo)
     {
         return Mono.fromCallable(() -> toDoRepository.save(toDo));
+    }
+
+    private void throwIfPriorityTypeValueCombinationIsInCorrect(String priorityType, Optional<Integer> priorityValue)
+    {
+        var toDoPriorityInfoAssigned =
+                StringUtils.hasText(priorityType) && !Objects.isNull(priorityValue) && priorityValue.isPresent();
+
+        var FullToDoPriorityInfoNotAssigned =
+                !StringUtils.hasText(priorityType) && Objects.isNull(priorityValue);
+
+        if (!(toDoPriorityInfoAssigned || FullToDoPriorityInfoNotAssigned))
+            throw new IncorrectCreateToDoCommandException("Incorrect priority type-value combination");
     }
 }

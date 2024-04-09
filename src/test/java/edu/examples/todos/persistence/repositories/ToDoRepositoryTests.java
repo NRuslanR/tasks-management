@@ -1,8 +1,8 @@
 package edu.examples.todos.persistence.repositories;
 
-import edu.examples.todos.domain.actors.ToDoTestsUtils;
 import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
+import edu.examples.todos.domain.actors.todos.ToDoTestsUtils;
 import edu.examples.todos.persistence.repositories.common.DomainEntityRepositoryTests;
 import edu.examples.todos.persistence.repositories.todos.ToDoRepository;
 import org.junit.jupiter.api.Test;

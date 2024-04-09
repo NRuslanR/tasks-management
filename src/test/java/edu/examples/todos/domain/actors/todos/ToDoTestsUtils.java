@@ -1,7 +1,4 @@
-package edu.examples.todos.domain.actors;
-
-import edu.examples.todos.domain.actors.todos.ToDo;
-import edu.examples.todos.domain.actors.todos.ToDoId;
+package edu.examples.todos.domain.actors.todos;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,6 +14,6 @@ public class ToDoTestsUtils
 
     public static ToDo createSimpleTestToDo(String name)
     {
-        return ToDo.of(ToDoId.of(UUID.randomUUID()), name, LocalDateTime.now());
+        return ToDo.of(ToDoId.of(UUID.randomUUID()), name, ToDoPriority.defaultPriority(), LocalDateTime.now());
     }
 }

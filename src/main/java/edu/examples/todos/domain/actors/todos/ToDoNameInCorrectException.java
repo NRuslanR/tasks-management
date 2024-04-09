@@ -1,8 +1,6 @@
 package edu.examples.todos.domain.actors.todos;
 
-import edu.examples.todos.domain.common.exceptions.DomainException;
-
-public class ToDoNameInCorrectException extends DomainException
+public class ToDoNameInCorrectException extends ToDoException
 {
     public ToDoNameInCorrectException()
     {

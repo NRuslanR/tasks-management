@@ -13,28 +13,29 @@ import java.time.LocalDateTime;
 @Table(name = "todos")
 public class ToDo extends BaseEntity<ToDoId>
 {
-    public static ToDo of(ToDoId id, String name, String description, LocalDateTime createdAt)
+    public static ToDo of(ToDoId id, String name, String description, ToDoPriority priority, LocalDateTime createdAt)
     {
-        return new ToDo(id, name, description, createdAt);
+        return new ToDo(id, name, description, priority, createdAt);
     }
 
-    public static ToDo of(ToDoId id, String name, LocalDateTime createdAt)
+    public static ToDo of(ToDoId id, String name, ToDoPriority priority, LocalDateTime createdAt)
     {
-        return new ToDo(id, name, createdAt);
+        return new ToDo(id, name, priority, createdAt);
     }
 
-    public ToDo(ToDoId id, String name, String description, LocalDateTime createdAt) throws ToDoNameInCorrectException
+    public ToDo(ToDoId id, String name, String description, ToDoPriority priority, LocalDateTime createdAt) throws ToDoNameInCorrectException
     {
-        this(id, name, createdAt);
+        this(id, name, priority, createdAt);
 
         setDescription(description);
     }
 
-    public ToDo(ToDoId id, String name, LocalDateTime createdAt)
+    public ToDo(ToDoId id, String name, ToDoPriority priority, LocalDateTime createdAt)
     {
         super(id);
 
         setName(name);
+        setPriority(priority);
         setCreatedAt(createdAt);
     }
 
@@ -53,6 +54,30 @@ public class ToDo extends BaseEntity<ToDoId>
         }
 
         name = newName;
+    }
+
+    @NonNull
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(
+                    name = "type",
+                    column = @Column(name = "priority_type")
+            ),
+            @AttributeOverride(
+                    name = "value",
+                    column = @Column(name = "priority_value")
+            )
+    })
+    private ToDoPriority priority;
+
+    public void changePriorityType(ToDoPriorityType type)
+    {
+        priority = priority.changeType(type);
+    }
+
+    public void changePriorityValue(int value)
+    {
+        priority = priority.changeValue(value);
     }
 
     private String description;

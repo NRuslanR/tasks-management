@@ -19,6 +19,8 @@ public class ToDoDto
     private String id;
     private String name;
     private String description;
+    private String priorityType;
+    private int priorityValue;
     private LocalDateTime createdAt;
     private String parentToDoId;
 

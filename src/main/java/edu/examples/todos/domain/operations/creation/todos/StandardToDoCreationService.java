@@ -1,8 +1,9 @@
 package edu.examples.todos.domain.operations.creation.todos;
 
 import edu.examples.todos.domain.actors.todos.ToDo;
+import edu.examples.todos.domain.actors.todos.ToDoException;
 import edu.examples.todos.domain.actors.todos.ToDoId;
-import edu.examples.todos.domain.actors.todos.ToDoNameInCorrectException;
+import edu.examples.todos.domain.actors.todos.ToDoPriority;
 import edu.examples.todos.domain.decisionsupport.search.todos.ToDoFinder;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +54,7 @@ public class StandardToDoCreationService implements ToDoCreationService
                 ensureToDoWithSpecifiedNameDoesNotExists(request.getName())
                         .then(createToDoFromRequest(request))
                         .onErrorResume(
-                                ToDoNameInCorrectException.class,
+                                ToDoException.class,
                                 e -> Mono.error(new IncorrectCreateToDoRequestException(e.getMessage()))
                         );
     }
@@ -64,7 +65,15 @@ public class StandardToDoCreationService implements ToDoCreationService
 
         var createdAt = LocalDateTime.now();
 
-        return Mono.fromCallable(() -> new ToDo(toDoId, request.getName(), request.getDescription(), createdAt));
+        return Mono.fromCallable(
+                () -> new ToDo(
+                        toDoId,
+                        request.getName(),
+                        request.getDescription(),
+                        request.getPriority().orElseGet(ToDoPriority::defaultPriority),
+                        createdAt
+                )
+        );
     }
 
     private Mono<Void> ensureToDoWithSpecifiedNameDoesNotExists(String name)

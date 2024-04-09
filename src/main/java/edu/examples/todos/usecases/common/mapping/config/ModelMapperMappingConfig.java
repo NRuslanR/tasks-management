@@ -2,14 +2,20 @@ package edu.examples.todos.usecases.common.mapping.config;
 
 import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
+import edu.examples.todos.domain.actors.todos.ToDoPriority;
+import edu.examples.todos.domain.operations.creation.todos.CreateToDoRequest;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
+import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
+import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Configuration
 public class ModelMapperMappingConfig
@@ -38,7 +44,59 @@ public class ModelMapperMappingConfig
 
     private void customizeMappings(ModelMapper mapper)
     {
+        customizeCommandMappings(mapper);
         customizeToDoMappings(mapper);
+    }
+
+    private void customizeCommandMappings(ModelMapper mapper)
+    {
+        var createToDoRequestMap =
+            mapper.createTypeMap(CreateToDoCommand.class, CreateToDoRequest.class);
+
+        Converter<CreateToDoCommand, CreateToDoRequest> createToDoCommandConverter =
+                ctx -> {
+
+                    var source = ctx.getSource();
+
+                    ctx.getDestination().setPriority(
+
+                            StringUtils.hasText(source.getPriorityType()) ?
+                                    Optional.of(
+                                            ToDoPriority.of(
+                                                    source.getPriorityType(),
+                                                    source.getPriorityValue().get()
+                                            )
+                                    ) : Optional.empty()
+                    );
+
+                    return ctx.getDestination();
+                };
+
+        createToDoRequestMap.setPostConverter(createToDoCommandConverter);
+
+        var toDoMap = mapper.createTypeMap(UpdateToDoCommand.class, ToDo.class);
+
+        Converter<UpdateToDoCommand, ToDo> updateToDoCommandToDoConverter =
+                ctx -> {
+
+                    var source = ctx.getSource();
+
+                    if (!StringUtils.hasText(source.getPriorityType()))
+                        return ctx.getDestination();
+
+                    ctx
+                        .getDestination()
+                            .setPriority(
+                                    ToDoPriority.of(
+                                            source.getPriorityType(),
+                                            source.getPriorityValue().get()
+                                    )
+                            );
+
+                    return  ctx.getDestination();
+                };
+
+        toDoMap.setPostConverter(updateToDoCommandToDoConverter);
     }
 
     private void customizeToDoMappings(ModelMapper mapper)
@@ -59,5 +117,24 @@ public class ModelMapperMappingConfig
             m.using(idConverter).map(ToDo::getId, ToDoDto::setId);
             m.using(idConverter).map(ToDo::getParentToDoId, ToDoDto::setParentToDoId);
         });
+
+        Converter<ToDoPriority, String> priorityTypeConverter =
+            ctx -> {
+
+                return ctx.getSource().type().toString();
+            };
+
+        Converter<ToDoPriority, Integer> priorityValueConverter =
+            ctx -> {
+
+                return ctx.getSource().value();
+            };
+
+        toDoDtoMap.addMappings(
+            m -> {
+                m.using(priorityTypeConverter).map(ToDo::getPriority, ToDoDto::setPriorityType);
+                m.using(priorityValueConverter).map(ToDo::getPriority, ToDoDto::setPriorityValue);
+            }
+        );
     }
 }

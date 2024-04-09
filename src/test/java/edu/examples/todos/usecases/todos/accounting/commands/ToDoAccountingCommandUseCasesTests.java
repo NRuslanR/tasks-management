@@ -1,5 +1,6 @@
 package edu.examples.todos.usecases.todos.accounting.commands;
 
+import edu.examples.todos.domain.actors.todos.ToDoPriorityType;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
@@ -22,6 +23,7 @@ import org.junit.platform.commons.util.StringUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCasesTestsUtils.createSimpleIncorrectCommandForToDoCreating;
@@ -66,7 +68,8 @@ public abstract class ToDoAccountingCommandUseCasesTests
             .verifyComplete();
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource("createIncorrectCommandsForToDoCreating")
     public void should_ThrowException_When_CreateToDoCommand_IsNotCorrect()
     {
         var incorrectCreateToDoCommand = createSimpleIncorrectCommandForToDoCreating();
@@ -77,6 +80,16 @@ public abstract class ToDoAccountingCommandUseCasesTests
             .create(createToDoResult)
             .expectError(IncorrectCreateToDoCommandException.class)
             .verify();
+    }
+
+    public Stream<Arguments> createIncorrectCommandsForToDoCreating()
+    {
+        return Stream.of(
+                Arguments.of(createSimpleIncorrectCommandForToDoCreating()),
+                Arguments.of(new CreateToDoCommand(generateRandomToDoName(), "", "", Optional.of(5))),
+                Arguments.of(new CreateToDoCommand(generateRandomToDoName(), "", ToDoPriorityType.MEDIUM.toString(), null)),
+                Arguments.of(new CreateToDoCommand(generateRandomToDoName(), "", ToDoPriorityType.MEDIUM.toString(), Optional.empty()))
+        );
     }
 
     @Test
