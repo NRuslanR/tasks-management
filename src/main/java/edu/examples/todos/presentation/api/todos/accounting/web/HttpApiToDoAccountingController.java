@@ -25,7 +25,6 @@ import java.util.Optional;
 @CrossOrigin
 public class HttpApiToDoAccountingController extends AbstractApiToDoAccountingController
 {
-
     public HttpApiToDoAccountingController(
             ToDoAccountingQueryUseCases toDoAccountingQueryUseCases,
             ToDoAccountingCommandUseCases toDoAccountingCommandUseCases,

@@ -1,13 +1,11 @@
 package edu.examples.todos.domain.resources.users;
 
 import jakarta.persistence.Embeddable;
-import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.experimental.Accessors;
 
 @Value
 @Accessors(fluent = true)
-@RequiredArgsConstructor(staticName = "of")
 @Embeddable
 public class UserClaims
 {
@@ -22,6 +20,32 @@ public class UserClaims
         canPerformForeignTodos = false;
         canEditForeignTodos = false;
         canRemoveForeignTodos = false;
+    }
+
+    public static UserClaims of(
+            int allowedToDoCreationCount,
+            boolean canEditForeignTodos,
+            boolean canRemoveForeignTodos,
+            boolean canPerformForeignTodos
+    )
+    {
+        return new UserClaims(allowedToDoCreationCount, canEditForeignTodos, canRemoveForeignTodos, canPerformForeignTodos);
+    }
+
+    private UserClaims(
+            int allowedToDoCreationCount,
+            boolean canEditForeignTodos,
+            boolean canRemoveForeignTodos,
+            boolean canPerformForeignTodos
+    )
+    {
+        if (allowedToDoCreationCount < 0)
+            throw new IncorrectToDoCreationCountException("To-Do creation count limit can't be negative");
+
+        this.allowedToDoCreationCount = allowedToDoCreationCount;
+        this.canEditForeignTodos = canEditForeignTodos;
+        this.canRemoveForeignTodos = canRemoveForeignTodos;
+        this.canPerformForeignTodos = canPerformForeignTodos;
     }
 
     public UserClaims changeAllowedToDoCreationCount(int value)

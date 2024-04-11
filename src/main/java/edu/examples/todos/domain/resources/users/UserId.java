@@ -28,4 +28,9 @@ public class UserId extends EntityId<UserId>
     {
         setValue(value);
     }
+
+    protected UserId()
+    {
+
+    }
 }

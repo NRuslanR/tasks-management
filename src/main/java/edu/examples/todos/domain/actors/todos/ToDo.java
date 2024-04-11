@@ -30,7 +30,7 @@ public class ToDo extends BaseEntity<ToDoId>
         setDescription(description);
     }
 
-    public ToDo(ToDoId id, String name, ToDoPriority priority, LocalDateTime createdAt)
+    private ToDo(ToDoId id, String name, ToDoPriority priority, LocalDateTime createdAt)
     {
         super(id);
 

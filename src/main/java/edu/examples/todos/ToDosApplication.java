@@ -28,6 +28,7 @@ import java.util.Arrays;
             Transactional Outbox, Transactional log tailing and more and more
         )
     11. Add Swagger Open API Support
+    12. Consider the MyBatis using within CQRS query use-case services
  */
 
 @SpringBootApplication

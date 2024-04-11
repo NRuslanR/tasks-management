@@ -4,9 +4,15 @@ import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
 import edu.examples.todos.domain.actors.todos.ToDoPriority;
 import edu.examples.todos.domain.operations.creation.todos.CreateToDoRequest;
+import edu.examples.todos.domain.operations.creation.users.CreateUserRequest;
+import edu.examples.todos.domain.resources.users.User;
+import edu.examples.todos.domain.resources.users.UserId;
+import edu.examples.todos.domain.resources.users.UserName;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
+import edu.examples.todos.usecases.users.accounting.UserDto;
+import edu.examples.todos.usecases.users.accounting.commands.create.CreateUserCommand;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -44,14 +50,28 @@ public class ModelMapperMappingConfig
 
     private void customizeMappings(ModelMapper mapper)
     {
-        customizeCommandMappings(mapper);
-        customizeToDoMappings(mapper);
+        customizeCommandsMappings(mapper);
+        customizeDtosMappings(mapper);
     }
 
-    private void customizeCommandMappings(ModelMapper mapper)
+    private void customizeCommandsMappings(ModelMapper mapper)
     {
+        var createUserMap = mapper.createTypeMap(CreateUserCommand.class, CreateUserRequest.class);
+
+        Converter<CreateUserCommand, CreateUserRequest> createUserCommandConverter =
+                ctx -> {
+                    var source = ctx.getSource();
+                    var destination = ctx.getDestination();
+
+                    destination.setName(UserName.of(source.getFirstName(), source.getLastName()));
+
+                    return destination;
+                };
+
+        createUserMap.setPostConverter(createUserCommandConverter);
+
         var createToDoRequestMap =
-            mapper.createTypeMap(CreateToDoCommand.class, CreateToDoRequest.class);
+                mapper.createTypeMap(CreateToDoCommand.class, CreateToDoRequest.class);
 
         Converter<CreateToDoCommand, CreateToDoRequest> createToDoCommandConverter =
                 ctx -> {
@@ -85,7 +105,7 @@ public class ModelMapperMappingConfig
                         return ctx.getDestination();
 
                     ctx
-                        .getDestination()
+                            .getDestination()
                             .setPriority(
                                     ToDoPriority.of(
                                             source.getPriorityType(),
@@ -97,6 +117,30 @@ public class ModelMapperMappingConfig
                 };
 
         toDoMap.setPostConverter(updateToDoCommandToDoConverter);
+    }
+
+    private void customizeDtosMappings(ModelMapper mapper)
+    {
+        customizeUserMappings(mapper);
+        customizeToDoMappings(mapper);
+    }
+
+    private void customizeUserMappings(ModelMapper mapper)
+    {
+        var userMap = mapper.createTypeMap(User.class, UserDto.class);
+
+        Converter<UserId, String> idConverter = ctx -> ctx.getSource().getValue().toString();
+
+
+        userMap.addMappings(
+            m -> {
+                m.using(idConverter).map(User::getId, UserDto::setId);
+                m.map(User::allowedToDoCreationCount, UserDto::setAllowedToDoCreationCount);
+                m.map(User::canEditForeignTodos, UserDto::setEditForeignTodosAllowed);
+                m.map(User::canRemoveForeignTodos, UserDto::setRemoveForeignTodosAllowed);
+                m.map(User::canPerformForeignTodos, UserDto::setPerformForeignTodosAllowed);
+            }
+        );
     }
 
     private void customizeToDoMappings(ModelMapper mapper)
