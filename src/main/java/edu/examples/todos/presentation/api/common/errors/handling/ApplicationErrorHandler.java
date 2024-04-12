@@ -1,10 +1,11 @@
 package edu.examples.todos.presentation.api.common.errors.handling;
 
 import edu.examples.todos.presentation.api.common.errors.ApplicationError;
-import edu.examples.todos.presentation.api.common.exceptions.ApiException;
+import edu.examples.todos.presentation.api.common.exceptions.EntityNotFoundUseCaseException;
 import edu.examples.todos.usecases.common.exceptions.UseCasesException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -24,11 +25,11 @@ public class ApplicationErrorHandler extends ResponseEntityExceptionHandler
     }
 
     @ExceptionHandler({
-            ApiException.class
+            EntityNotFoundUseCaseException.class
     })
-    public ResponseEntity<ApplicationError> handleApiException(UseCasesException exception)
+    public ResponseEntity<ApplicationError> handleEntityNotFoundUseCaseException(EntityNotFoundUseCaseException exception)
     {
-        return ResponseEntity.badRequest().body(new ApplicationError(exception.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApplicationError(exception.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

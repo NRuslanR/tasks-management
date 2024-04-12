@@ -1,8 +1,8 @@
 package edu.examples.todos.usecases.todos.common.exceptions;
 
-import edu.examples.todos.usecases.common.exceptions.UseCasesException;
+import edu.examples.todos.presentation.api.common.exceptions.EntityNotFoundUseCaseException;
 
-public class ToDoNotFoundException extends UseCasesException
+public class ToDoNotFoundException extends EntityNotFoundUseCaseException
 {
     public ToDoNotFoundException() {
         super("The required To-Do not found");

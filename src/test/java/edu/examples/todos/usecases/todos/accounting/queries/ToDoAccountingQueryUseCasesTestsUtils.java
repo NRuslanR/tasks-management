@@ -1,7 +1,7 @@
 package edu.examples.todos.usecases.todos.accounting.queries;
 
-import edu.examples.todos.usecases.todos.accounting.queries.common.FilterQuery;
-import edu.examples.todos.usecases.todos.accounting.queries.common.FindObjectsQuery;
+import edu.examples.todos.usecases.common.accounting.queries.FilterQuery;
+import edu.examples.todos.usecases.common.accounting.queries.FindObjectsQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.GetToDoFullInfoByIdQuery;

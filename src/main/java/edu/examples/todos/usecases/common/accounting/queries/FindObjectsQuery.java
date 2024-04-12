@@ -1,4 +1,4 @@
-package edu.examples.todos.usecases.todos.accounting.queries.common;
+package edu.examples.todos.usecases.common.accounting.queries;
 
 import edu.examples.todos.usecases.common.exceptions.UseCasesException;
 import edu.examples.todos.usecases.common.extensions.UnpagedSorted;

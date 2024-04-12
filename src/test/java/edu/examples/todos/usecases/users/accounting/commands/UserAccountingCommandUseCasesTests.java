@@ -1,8 +1,13 @@
 package edu.examples.todos.usecases.users.accounting.commands;
 
+import edu.examples.todos.usecases.users.accounting.UserDto;
 import edu.examples.todos.usecases.users.accounting.commands.create.CreateUserCommand;
 import edu.examples.todos.usecases.users.accounting.commands.create.IncorrectCreateUserCommandException;
+import edu.examples.todos.usecases.users.accounting.commands.remove.IncorrectRemoveUserCommandException;
+import edu.examples.todos.usecases.users.accounting.commands.remove.RemoveUserCommand;
+import edu.examples.todos.usecases.users.accounting.common.exceptions.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -91,5 +96,76 @@ public abstract class UserAccountingCommandUseCasesTests
                 Arguments.of(new CreateUserCommand("a", "")),
                 Arguments.of(new CreateUserCommand("", "b"))
         );
+    }
+
+    @Test
+    public void should_RemoveUser_When_QueryIsValid_And_UserExists()
+    {
+        var userId = createRandomUser().getId();
+
+        var command = new RemoveUserCommand(userId);
+
+        var result = userAccountingCommandUseCases.removeUser(command);
+
+        StepVerifier
+                .create(result)
+                .assertNext(v -> {
+
+                    assertNotNull(v);
+
+                    var removedUser = v.getUser();
+
+                    assertThrows(UserNotFoundException.class, () -> {
+
+                        userAccountingCommandUseCases
+                                .removeUser(new RemoveUserCommand(removedUser.getId()))
+                                .block();
+                    });
+                });
+    }
+
+    @ParameterizedTest
+    @MethodSource("createIncorrectRemoveUserCommands")
+    public void should_ThrowException_When_RemoveUserCommand_Is_InCorrect(RemoveUserCommand incorrectCommand)
+    {
+        var result = userAccountingCommandUseCases.removeUser(incorrectCommand);
+
+        StepVerifier
+                .create(result)
+                .expectError(IncorrectRemoveUserCommandException.class)
+                .verify();
+    }
+
+    public Stream<Arguments> createIncorrectRemoveUserCommands()
+    {
+        return
+                UserAccountingCommandUseCasesTestsUtils
+                        .createIncorrectCommandsForUserRemoving()
+                        .stream()
+                        .map(Arguments::of);
+    }
+
+    @Test
+    public void should_ThrowException_When_UserNotFound_To_Be_Removed()
+    {
+        var command = UserAccountingCommandUseCasesTestsUtils.createCommandForNonExistentUserRemoving();
+
+        var result = userAccountingCommandUseCases.removeUser(command);
+
+        StepVerifier
+                .create(result)
+                .expectError(UserNotFoundException.class)
+                .verify();
+    }
+
+    private UserDto createRandomUser()
+    {
+        return
+                userAccountingCommandUseCases
+                    .createUser(
+                        UserAccountingCommandUseCasesTestsUtils.createSimpleCommandForRandomUserCreating()
+                    )
+                    .block()
+                    .getUser();
     }
 }

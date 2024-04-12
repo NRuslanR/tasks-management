@@ -2,6 +2,7 @@ package edu.examples.todos.usecases.users.accounting;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class UserDto
 {
     private String id;
@@ -19,5 +21,4 @@ public class UserDto
     private Boolean editForeignTodosAllowed;
     private Boolean removeForeignTodosAllowed;
     private Boolean performForeignTodosAllowed;
-
 }

@@ -2,9 +2,9 @@ package edu.examples.todos.usecases.todos.accounting.queries;
 
 import edu.examples.todos.common.util.DataTransforms;
 import edu.examples.todos.common.util.HierarchicalItem;
+import edu.examples.todos.usecases.common.accounting.queries.FilterQuery;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.ToDoFullInfoDto;
-import edu.examples.todos.usecases.todos.accounting.queries.common.FilterQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosResult;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.IncorrectFindToDosQueryException;

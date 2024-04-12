@@ -19,6 +19,11 @@ public class UserId extends EntityId<UserId>
     @JdbcTypeCode(Types.VARCHAR)
     private UUID value;
 
+    public static UserId of(String userId)
+    {
+        return of(UUID.fromString(userId));
+    }
+
     public static UserId of(UUID value)
     {
         return new UserId(value);

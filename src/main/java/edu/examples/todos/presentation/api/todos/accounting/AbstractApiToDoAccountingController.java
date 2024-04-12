@@ -5,6 +5,7 @@ import edu.examples.todos.presentation.api.todos.common.resources.ToDoFullInfoRe
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoFullInfoResourceAssembler;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
+import edu.examples.todos.usecases.common.accounting.queries.FindObjectsQuery;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.ToDoFullInfoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
@@ -14,7 +15,6 @@ import edu.examples.todos.usecases.todos.accounting.commands.remove.RemoveToDoCo
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoResult;
 import edu.examples.todos.usecases.todos.accounting.queries.ToDoAccountingQueryUseCases;
-import edu.examples.todos.usecases.todos.accounting.queries.common.FindObjectsQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosResult;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;

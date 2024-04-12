@@ -1,6 +1,6 @@
 package edu.examples.todos.usecases.todos.accounting.queries.findtodos;
 
-import edu.examples.todos.usecases.todos.accounting.queries.common.FindObjectsQuery;
+import edu.examples.todos.usecases.common.accounting.queries.FindObjectsQuery;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

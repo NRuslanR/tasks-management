@@ -6,5 +6,9 @@ import reactor.core.publisher.Mono;
 
 public interface ApiUserAccountingController
 {
+    Mono<UserResource> getUserById(String userId);
+
     Mono<UserResource> createUser(CreateUserCommand command);
+
+    Mono<Void> removeUser(String userId);
 }

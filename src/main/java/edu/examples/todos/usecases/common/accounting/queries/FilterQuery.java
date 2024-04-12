@@ -1,4 +1,4 @@
-package edu.examples.todos.usecases.todos.accounting.queries.common;
+package edu.examples.todos.usecases.common.accounting.queries;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

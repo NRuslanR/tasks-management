@@ -7,6 +7,9 @@ import edu.examples.todos.usecases.users.accounting.UserDto;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.stereotype.Component;
 
+import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.methodOn;
+
 @Component
 public class HttpUserResourceAssembler extends UserResourceAssembler
 {
@@ -18,7 +21,14 @@ public class HttpUserResourceAssembler extends UserResourceAssembler
     @Override
     protected void setLinksToModel(UserResource resource, UserDto entity)
     {
-        super.setLinksToModel(resource, entity);
+        resource.add(
+            linkTo(
+                methodOn(HttpApiUserAccountingController.class).getUserById(entity.getId())
+            ).withSelfRel().toMono().block(),
+            linkTo(
+                methodOn(HttpApiUserAccountingController.class).removeUser(entity.getId())
+            ).withRel("remove").toMono().block()
+        );
     }
 
     @Override
