@@ -157,11 +157,6 @@ public class ModelMapperMappingConfig
 
             };
 
-        toDoDtoMap.addMappings(m -> {
-            m.using(idConverter).map(ToDo::getId, ToDoDto::setId);
-            m.using(idConverter).map(ToDo::getParentToDoId, ToDoDto::setParentToDoId);
-        });
-
         Converter<ToDoPriority, String> priorityTypeConverter =
             ctx -> {
 
@@ -174,10 +169,16 @@ public class ModelMapperMappingConfig
                 return ctx.getSource().value();
             };
 
+        Converter<Enum, String> enumStringConverter =
+                ctx -> ctx.getSource().toString().toLowerCase();
+
         toDoDtoMap.addMappings(
             m -> {
+                m.using(idConverter).map(ToDo::getId, ToDoDto::setId);
+                m.using(idConverter).map(ToDo::getParentToDoId, ToDoDto::setParentToDoId);
                 m.using(priorityTypeConverter).map(ToDo::getPriority, ToDoDto::setPriorityType);
                 m.using(priorityValueConverter).map(ToDo::getPriority, ToDoDto::setPriorityValue);
+                m.using(enumStringConverter).map(ToDo::getStatus, ToDoDto::setStatus);
             }
         );
     }

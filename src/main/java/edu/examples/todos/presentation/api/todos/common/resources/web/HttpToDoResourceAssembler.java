@@ -4,6 +4,7 @@ import edu.examples.todos.presentation.api.todos.accounting.web.HttpApiToDoAccou
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
 import edu.examples.todos.presentation.api.todos.relationships.web.HttpApiToDoRelationshipsController;
+import edu.examples.todos.presentation.api.todos.workcycle.performing.web.HttpApiToDoPerformingController;
 import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.stereotype.Component;
@@ -39,7 +40,10 @@ public class HttpToDoResourceAssembler extends ToDoResourceAssembler
             ).withRel("remove").toMono().block(),
             linkTo(
                     methodOn(HttpApiToDoRelationshipsController.class).assignToDoParent(toDoDto.getId(), null)
-            ).withRel("assign-parent").toMono().block()
+            ).withRel("assign-parent").toMono().block(),
+            linkTo(
+                methodOn(HttpApiToDoPerformingController.class).performToDo(toDoDto.getId())
+            ).withRel("perform").toMono().block()
         );
     }
 

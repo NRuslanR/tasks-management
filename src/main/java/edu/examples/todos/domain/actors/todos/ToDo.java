@@ -7,6 +7,7 @@ import lombok.NonNull;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Data
 @Entity
@@ -36,7 +37,13 @@ public class ToDo extends BaseEntity<ToDoId>
 
         setName(name);
         setPriority(priority);
-        setCreatedAt(createdAt);
+        setCreatedStatus(createdAt);
+    }
+
+    private void setCreatedStatus(LocalDateTime value)
+    {
+        status = ToDoStatus.CREATED;
+        createdAt = value;
     }
 
     protected ToDo()
@@ -86,6 +93,15 @@ public class ToDo extends BaseEntity<ToDoId>
     @NonNull
     private LocalDateTime createdAt;
 
+    @Temporal(TemporalType.TIMESTAMP)
+    @NonNull
+    private LocalDateTime performedAt;
+
+    /* refactor: it woulde be possible to divide this entity to multiple, each entity per status */
+    @Enumerated(EnumType.ORDINAL)
+    @NonNull
+    private ToDoStatus status;
+
     private void setCreatedAt(@NonNull LocalDateTime value)
     {
         createdAt = adjustDate(value);
@@ -106,11 +122,12 @@ public class ToDo extends BaseEntity<ToDoId>
     private void adjustDates()
     {
         createdAt = adjustDate(createdAt);
+        performedAt = adjustDate(performedAt);
     }
 
     private LocalDateTime adjustDate(LocalDateTime value)
     {
-        return value.withNano(0);
+        return Optional.ofNullable(value).map(v -> v.withNano(0)).orElse(null);
     }
 
     /* refactor: */
@@ -128,4 +145,25 @@ public class ToDo extends BaseEntity<ToDoId>
         current To-Do's name is required to change. This DDD approach
      */
     private ToDoId parentToDoId;
+
+    public void perform()
+        throws
+            ToDoStatusIsNotCorrectDomainException
+    {
+        ThrowIfToDoStatusIsNotCorrect();
+
+        setPerformedStatus();
+    }
+
+    private void ThrowIfToDoStatusIsNotCorrect()
+    {
+        if (status == ToDoStatus.PERFORMED)
+            throw new ToDoStatusIsNotCorrectDomainException("To-Do \"" + getName() + "\" is already performed");
+    }
+
+    private void setPerformedStatus()
+    {
+        status = ToDoStatus.PERFORMED;
+        performedAt = LocalDateTime.now();
+    }
 }
