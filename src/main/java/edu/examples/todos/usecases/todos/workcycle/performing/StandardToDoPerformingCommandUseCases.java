@@ -1,16 +1,15 @@
 package edu.examples.todos.usecases.todos.workcycle.performing;
 
-import edu.examples.todos.domain.actors.todos.ToDo;
+import edu.examples.todos.domain.actors.todos.OperableToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
-import edu.examples.todos.domain.actors.todos.ToDoStatusIsNotCorrectDomainException;
+import edu.examples.todos.domain.operations.accounting.todos.ToDoAccountingService;
 import edu.examples.todos.persistence.repositories.todos.ToDoRepository;
+import edu.examples.todos.usecases.common.exceptions.translation.ExceptionTranslator;
 import edu.examples.todos.usecases.common.mapping.UseCaseMapper;
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
-import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 import edu.examples.todos.usecases.todos.workcycle.performing.perform.IncorrectPerformToDoCommandException;
 import edu.examples.todos.usecases.todos.workcycle.performing.perform.PerformToDoCommand;
 import edu.examples.todos.usecases.todos.workcycle.performing.perform.PerformToDoResult;
-import edu.examples.todos.usecases.todos.workcycle.performing.perform.ToDoStatusIsNotCorrectException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +22,13 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class StandardToDoPerformingCommandUseCases implements ToDoPerformingCommandUseCases
 {
+    private final ToDoAccountingService toDoAccountingService;
+
     private final ToDoRepository toDoRepository;
 
     private final UseCaseMapper mapper;
+
+    private final ExceptionTranslator exceptionTranslator;
 
     @Override
     @Transactional
@@ -53,39 +56,37 @@ public class StandardToDoPerformingCommandUseCases implements ToDoPerformingComm
     private Mono<PerformToDoResult> doPerformToDo(PerformToDoCommand command)
     {
         return
-                getToDoById(command.getToDoId())
-                        .map(v -> {
+                getToDoByIdToPerform(command.getToDoId())
+                    .map(v -> {
 
-                            v.perform();
+                        v.perform();
 
-                            return v;
-                        })
-                        .onErrorResume(
-                            ToDoStatusIsNotCorrectDomainException.class,
-                            e -> Mono.error(new ToDoStatusIsNotCorrectException(e.getMessage()))
-                        )
-                        .flatMap(this::saveToDo)
-                        .flatMap(this::toPerformToDoResult);
+                        return v;
+                    })
+                    .flatMap(this::saveToDo)
+                    .flatMap(this::toPerformToDoResult);
     }
 
-    private Mono<ToDo> getToDoById(String toDoId)
+    private Mono<OperableToDo> getToDoByIdToPerform(String toDoId)
     {
         return
-                Mono.fromCallable(
-                        () ->
-                            toDoRepository
-                                .findById(ToDoId.of(toDoId))
-                                .orElseThrow(ToDoNotFoundException::new)
-                );
+                toDoAccountingService.getToDoByIdForPerforming(ToDoId.of(toDoId))
+                    .onErrorResume(
+                        Exception.class,
+                        e -> Mono.error(exceptionTranslator.translateException(e))
+                    );
     }
 
-    private Mono<ToDo> saveToDo(ToDo toDo)
+    private Mono<PerformToDoResult> toPerformToDoResult(OperableToDo toDo)
+    {
+        return
+                toDoAccountingService
+                    .toOperableToDoAsync(toDo.getTarget())
+                    .map(v -> new PerformToDoResult(mapper.map(v, ToDoDto.class)));
+    }
+
+    private Mono<OperableToDo> saveToDo(OperableToDo toDo)
     {
         return Mono.fromCallable(() -> toDoRepository.save(toDo));
-    }
-
-    private Mono<PerformToDoResult> toPerformToDoResult(ToDo toDo)
-    {
-        return Mono.fromCallable(() -> new PerformToDoResult(mapper.map(toDo, ToDoDto.class)));
     }
 }

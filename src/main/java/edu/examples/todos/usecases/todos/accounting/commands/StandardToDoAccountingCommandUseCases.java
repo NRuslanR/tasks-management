@@ -1,13 +1,14 @@
 package edu.examples.todos.usecases.todos.accounting.commands;
 
-import edu.examples.todos.domain.actors.todos.ToDo;
+import edu.examples.todos.domain.actors.todos.OperableToDo;
+import edu.examples.todos.domain.actors.todos.ToDoException;
 import edu.examples.todos.domain.actors.todos.ToDoId;
 import edu.examples.todos.domain.common.exceptions.DomainException;
+import edu.examples.todos.domain.operations.accounting.todos.ToDoAccountingService;
 import edu.examples.todos.domain.operations.creation.todos.*;
-import edu.examples.todos.domain.operations.relationships.todos.ToDoRelationshipsService;
 import edu.examples.todos.persistence.repositories.todos.ToDoRepository;
+import edu.examples.todos.usecases.common.exceptions.translation.ExceptionTranslator;
 import edu.examples.todos.usecases.common.mapping.UseCaseMapper;
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
 import edu.examples.todos.usecases.todos.accounting.commands.create.IncorrectCreateToDoCommandException;
@@ -18,6 +19,7 @@ import edu.examples.todos.usecases.todos.accounting.commands.remove.RemoveToDoRe
 import edu.examples.todos.usecases.todos.accounting.commands.update.IncorrectUpdateToDoCommandException;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoResult;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,13 +36,13 @@ import java.util.Optional;
 public class StandardToDoAccountingCommandUseCases implements ToDoAccountingCommandUseCases
 {
     private final ToDoCreationService toDoCreationService;
-
-    /* refactor: extract to ToDoRelationshipsCommandUseCases */
-    private final ToDoRelationshipsService toDoRelationshipsService;
+    private final ToDoAccountingService toDoAccountingService;
 
     private final UseCaseMapper mapper;
 
     private final ToDoRepository toDoRepository;
+
+    private final ExceptionTranslator exceptionTranslator;
 
     @Override
     @Transactional
@@ -97,12 +99,12 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
     {
         return
                 saveToDo(reply.getToDo())
-                    .map(CreateToDoReply::new);
+                    .map(CreateToDoReply::of);
     }
 
     private Mono<CreateToDoResult> toCreateToDoCommandResultAsync(CreateToDoReply reply)
     {
-        return Mono.fromCallable(() -> mapper.map(reply, CreateToDoResult.class));
+        return Mono.fromCallable(() -> new CreateToDoResult(mapper.map(reply.getToDo(), ToDoDto.class)));
     }
 
     @Override
@@ -117,7 +119,7 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
     {
         return
                 ensureUpdateToDoCommandIsValid(updateToDoCommand)
-                        .flatMap(this::doUpdateToDo);
+                    .flatMap(this::doUpdateToDo);
     }
 
     private Mono<UpdateToDoCommand> ensureUpdateToDoCommandIsValid(UpdateToDoCommand updateToDoCommand)
@@ -142,37 +144,33 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
     private Mono<UpdateToDoResult> doUpdateToDo(UpdateToDoCommand updateToDoCommand)
     {
         return
-                getToDoById(updateToDoCommand.getToDoId())
+                getToDoByIdToUpdate(updateToDoCommand.getToDoId())
                     .map(v -> mapper.map(updateToDoCommand, v))
                     .onErrorResume(
-                            DomainException.class,
-                            e -> Mono.error(
-                                    new IncorrectUpdateToDoCommandException(e.getMessage())
-                            )
+                            ToDoException.class,
+                            e -> Mono.error(new IncorrectUpdateToDoCommandException(e.getMessage()))
                     )
                     .flatMap(this::saveToDo)
-                    .map(this::toUpdateToDoResult);
+                    .flatMap(this::toUpdateToDoResult);
     }
 
-    private UpdateToDoResult toUpdateToDoResult(ToDo toDo)
-    {
-        return new UpdateToDoResult(mapper.map(toDo, ToDoDto.class));
-    }
-
-    /*
-        refactor: create UseCases-aspect to turn repeatable cross-service usable getToDoById's domain exceptions
-        into UseCasesException descendents
-     */
-    private Mono<ToDo> getToDoById(String toDoId)
+    private Mono<OperableToDo> getToDoByIdToUpdate(String toDoId)
     {
         return
-                Mono
-                    .fromCallable(
-                        () ->
-                            toDoRepository
-                                .findById(ToDoId.of(toDoId))
-                                    .orElseThrow(ToDoNotFoundException::new)
-                    );
+                toDoAccountingService
+                        .getToDoByIdForChanging(ToDoId.of(toDoId))
+                        .onErrorResume(
+                                Exception.class,
+                                e -> Mono.error(exceptionTranslator.translateException(e))
+                        );
+    }
+
+    private Mono<UpdateToDoResult> toUpdateToDoResult(OperableToDo operableToDo)
+    {
+        return
+                toDoAccountingService
+                        .toOperableToDoAsync(operableToDo.getTarget())
+                        .map(v -> new UpdateToDoResult(mapper.map(v, ToDoDto.class)));
     }
 
     @Override
@@ -185,7 +183,7 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
     {
         return
                 ensureRemoveToDoCommandIsValid(command)
-                        .flatMap(this::doRemoveToDo);
+                    .flatMap(this::doRemoveToDo);
     }
 
     private Mono<RemoveToDoCommand> ensureRemoveToDoCommandIsValid(RemoveToDoCommand command)
@@ -205,30 +203,33 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
     private Mono<RemoveToDoResult> doRemoveToDo(RemoveToDoCommand removeToDoCommand)
     {
         return
-                getToDoById(removeToDoCommand.getToDoId())
-                        .flatMap(this::deleteToDo)
-                        .map(this::toRemoveToDoResult);
+                getToDoByIdToRemove(removeToDoCommand.getToDoId())
+                    .flatMap(this::deleteToDo)
+                    .map(this::toRemoveToDoResult);
     }
 
-    private RemoveToDoResult toRemoveToDoResult(ToDo toDo)
+    private Mono<OperableToDo> getToDoByIdToRemove(String toDoId)
+    {
+        return
+                toDoAccountingService
+                    .getToDoByIdForRemoving(ToDoId.of(toDoId))
+                    .onErrorResume(
+                        Exception.class,
+                        e -> Mono.error(exceptionTranslator.translateException(e))
+                    );
+    }
+
+    private RemoveToDoResult toRemoveToDoResult(OperableToDo toDo)
     {
         return new RemoveToDoResult(mapper.map(toDo, ToDoDto.class));
     }
 
-    private Mono<ToDo> deleteToDo(ToDo toDo)
+    private Mono<OperableToDo> deleteToDo(OperableToDo toDo)
     {
-        return
-                Mono
-                    .fromCallable(
-                            () -> {
-                                toDoRepository.delete(toDo);
-
-                                return toDo;
-                            }
-                    );
+        return Mono.fromCallable(() -> toDoRepository.deleteRecursively(toDo));
     }
 
-    private Mono<ToDo> saveToDo(ToDo toDo)
+    private Mono<OperableToDo> saveToDo(OperableToDo toDo)
     {
         return Mono.fromCallable(() -> toDoRepository.save(toDo));
     }

@@ -6,11 +6,11 @@ import edu.examples.todos.presentation.api.todos.common.resources.ToDoFullInfoRe
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoFullInfoResourceAssembler;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.queries.ToDoAccountingQueryUseCases;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;

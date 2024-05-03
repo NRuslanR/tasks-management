@@ -9,7 +9,7 @@ import static edu.examples.todos.usecases.todos.common.data.generating.ToDoInfoG
 
 public interface UtilToDoAccountingCommandUseCases
 {
-    default KeyValue<CreateToDoCommand, Mono<CreateToDoResult>> runCreateRandomToDoCommandFor()
+    default KeyValue<CreateToDoCommand, Mono<CreateToDoResult>> runCreateRandomToDoCommand()
     {
         return runCreateToDoCommandFor(generateRandomToDoName());
     }

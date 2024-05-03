@@ -1,6 +1,5 @@
 package edu.examples.todos.usecases.todos.accounting.queries;
 
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.FindToDosQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.findtodos.IncorrectFindToDosQueryException;
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQuery;
@@ -8,6 +7,7 @@ import edu.examples.todos.usecases.todos.accounting.queries.getbyid.IncorrectGet
 import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.GetToDoFullInfoByIdQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.IncorrectGetToDoFullInfoByIdQueryException;
 import edu.examples.todos.usecases.todos.common.data.generating.ToDoCreationUtilService;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
 import edu.examples.todos.usecases.todos.relationships.commands.ToDoRelationshipsCommandUseCases;
 import edu.examples.todos.usecases.todos.relationships.commands.assign_parent.AssignToDoParentCommand;
@@ -308,5 +308,6 @@ public abstract class ToDoAccountingQueryUseCasesTests
         assertEquals(expectedToDo.getDescription(), actualToDo.getDescription());
         assertEquals(expectedToDo.getCreatedAt(), actualToDo.getCreatedAt());
         assertEquals(expectedToDo.getParentToDoId(), actualToDo.getParentToDoId());
+        assertEquals(expectedToDo.getActionsAvailability(), actualToDo.getActionsAvailability());
     }
 }

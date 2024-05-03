@@ -1,6 +1,6 @@
 package edu.examples.todos.presentation.api.todos.common.resources;
 
-import edu.examples.todos.usecases.todos.accounting.ToDoFullInfoDto;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoFullInfoDto;
 import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
 
 public abstract class ToDoFullInfoResourceAssembler

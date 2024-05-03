@@ -4,7 +4,6 @@ import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException
 import edu.examples.todos.usecases.todos.workcycle.performing.perform.IncorrectPerformToDoCommandException;
 import edu.examples.todos.usecases.todos.workcycle.performing.perform.PerformToDoCommand;
 import edu.examples.todos.usecases.todos.workcycle.performing.perform.PerformToDoResult;
-import edu.examples.todos.usecases.todos.workcycle.performing.perform.ToDoStatusIsNotCorrectException;
 import reactor.core.publisher.Mono;
 
 public interface ToDoPerformingCommandUseCases

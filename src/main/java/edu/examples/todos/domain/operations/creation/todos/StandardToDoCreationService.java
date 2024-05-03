@@ -1,11 +1,8 @@
 package edu.examples.todos.domain.operations.creation.todos;
 
-import edu.examples.todos.domain.actors.todos.ToDo;
-import edu.examples.todos.domain.actors.todos.ToDoException;
-import edu.examples.todos.domain.actors.todos.ToDoId;
-import edu.examples.todos.domain.actors.todos.ToDoPriority;
+import edu.examples.todos.domain.actors.todos.*;
 import edu.examples.todos.domain.decisionsupport.search.todos.ToDoFinder;
-import lombok.NonNull;
+import edu.examples.todos.domain.operations.availability.todos.ToDoActionsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -20,8 +17,10 @@ public class StandardToDoCreationService implements ToDoCreationService
 {
     private final ToDoFinder toDoFinder;
 
+    private final ToDoActionsService toDoActionsService;
+
     @Override
-    public CreateToDoReply createToDo(@NonNull CreateToDoRequest request)
+    public CreateToDoReply createToDo(CreateToDoRequest request)
             throws NullPointerException, IncorrectCreateToDoRequestException, ToDoAlreadyExistsDomainException
     {
         return createToDoAsync(request).block();
@@ -34,7 +33,8 @@ public class StandardToDoCreationService implements ToDoCreationService
         return
                 ensureRequestIsValid(request)
                         .flatMap(this::doCreateToDo)
-                        .flatMap(t -> Mono.just(CreateToDoReply.of(t)));
+                        .flatMap(this::toOperableToDo)
+                        .map(CreateToDoReply::of);
     }
 
     private Mono<CreateToDoRequest> ensureRequestIsValid(CreateToDoRequest request)
@@ -52,16 +52,16 @@ public class StandardToDoCreationService implements ToDoCreationService
     {
         return
                 ensureToDoWithSpecifiedNameDoesNotExists(request.getName())
-                        .then(createToDoFromRequest(request))
-                        .onErrorResume(
-                                ToDoException.class,
-                                e -> Mono.error(new IncorrectCreateToDoRequestException(e.getMessage()))
-                        );
+                    .then(createToDoFromRequest(request))
+                    .onErrorResume(
+                            ToDoException.class,
+                            e -> Mono.error(new IncorrectCreateToDoRequestException(e.getMessage()))
+                    );
     }
 
     private Mono<ToDo> createToDoFromRequest(CreateToDoRequest request)
     {
-        var toDoId = new ToDoId(UUID.randomUUID());
+        var toDoId = ToDoId.of(UUID.randomUUID());
 
         var createdAt = LocalDateTime.now();
 
@@ -89,5 +89,13 @@ public class StandardToDoCreationService implements ToDoCreationService
                             }
                         })
                         .then();
+    }
+
+    private Mono<OperableToDo> toOperableToDo(ToDo toDo)
+    {
+        return
+                toDoActionsService
+                    .getToDoActionsAvailabilityAsync(toDo)
+                    .map(v -> OperableToDo.of(toDo, v));
     }
 }

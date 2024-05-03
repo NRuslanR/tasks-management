@@ -2,7 +2,7 @@ package edu.examples.todos.presentation.api.todos.relationships;
 
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 import edu.examples.todos.usecases.todos.relationships.commands.ToDoRelationshipsCommandUseCases;
 import edu.examples.todos.usecases.todos.relationships.commands.assign_parent.AssignToDoParentCommand;
 import edu.examples.todos.usecases.todos.relationships.commands.assign_parent.AssignToDoParentResult;

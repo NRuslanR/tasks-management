@@ -1,10 +1,12 @@
 package edu.examples.todos.usecases.todos.workcycle.performing;
 
+import edu.examples.todos.usecases.todos.common.behaviour.states.ToDoStateUtilService;
 import edu.examples.todos.usecases.todos.common.data.generating.ToDoCreationUtilService;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoActionsAvailabilityDto;
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
+import edu.examples.todos.usecases.todos.common.exceptions.ToDoStateIsNotCorrectException;
 import edu.examples.todos.usecases.todos.workcycle.performing.perform.IncorrectPerformToDoCommandException;
 import edu.examples.todos.usecases.todos.workcycle.performing.perform.PerformToDoCommand;
-import edu.examples.todos.usecases.todos.workcycle.performing.perform.ToDoStatusIsNotCorrectException;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -24,10 +26,12 @@ public abstract class ToDoPerformingCommandUseCasesTests
 {
     private final ToDoCreationUtilService toDoCreationUtilService;
 
+    private final ToDoStateUtilService toDoStateUtilService;
+
     private final ToDoPerformingCommandUseCases toDoPerformingCommandUseCases;
 
     @Test
-    public void should_Perform_ToDo_When_Command_Is_Correct_And_ToDoExists_And_ToDoIsAtAllowedWorkCycleStage()
+    public void should_Perform_ToDo_When_Command_Is_Correct_And_ToDoExists_And_ToDoState_Is_Correct()
     {
         var toDo = toDoCreationUtilService.createRandomToDo();
 
@@ -45,9 +49,13 @@ public abstract class ToDoPerformingCommandUseCasesTests
 
                 assertNotNull(performedToDo);
                 assertEquals(toDo.getId(), performedToDo.getId());
-                assertEquals("performed", performedToDo.getStatus());
-                assertTrue(StringUtils.hasText(performedToDo.getDisplayStatus()));
+                assertEquals("performed", performedToDo.getState());
+                assertTrue(StringUtils.hasText(performedToDo.getDisplayState()));
                 assertNotNull(performedToDo.getPerformedAt());
+
+                var actionsAvailability = performedToDo.getActionsAvailability();
+
+                assertEquals(ToDoActionsAvailabilityDto.onlyViewingAvailable(), actionsAvailability);
             })
             .verifyComplete();
     }
@@ -87,25 +95,31 @@ public abstract class ToDoPerformingCommandUseCasesTests
                 .verify();
     }
 
-    @Test
-    public void should_ThrowException_When_ToDoIsAlreadyPerformed_To_Be_Performed()
+    @ParameterizedTest
+    @MethodSource("getIncorrectToDoStateIdsForPerforming")
+    public void should_ThrowException_When_ToDoState_IsNot_Correct_To_Be_Performed(String incorrectToDoStateId)
     {
+        if (!StringUtils.hasText(incorrectToDoStateId))
+            return;
+
         var toDo = toDoCreationUtilService.createRandomToDo();
 
-        toDoPerformingCommandUseCases.performToDo(
-            ToDoPerformingCommandUseCasesTestsUtils
-                .createCommandForToDoPerforming(toDo.getId())
-        ).block();
+        toDoStateUtilService.setToDoState(toDo, incorrectToDoStateId);
 
-        var result =
-                toDoPerformingCommandUseCases.performToDo(
-                    ToDoPerformingCommandUseCasesTestsUtils
-                        .createCommandForToDoPerforming(toDo.getId())
-                );
+        var command =
+            ToDoPerformingCommandUseCasesTestsUtils
+                .createCommandForToDoPerforming(toDo.getId());
+
+        var result = toDoPerformingCommandUseCases.performToDo(command);
 
         StepVerifier
                 .create(result)
-                .expectError(ToDoStatusIsNotCorrectException.class)
+                .expectError(ToDoStateIsNotCorrectException.class)
                 .verify();
+    }
+
+    public Stream<Arguments> getIncorrectToDoStateIdsForPerforming()
+    {
+        return toDoStateUtilService.getIncorrectToDoStatesForPerform().stream().map(Arguments::of);
     }
 }

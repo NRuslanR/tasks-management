@@ -1,24 +1,28 @@
 package edu.examples.todos.usecases.todos.relationships.commands;
 
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCasesTestsUtils;
+import edu.examples.todos.usecases.todos.common.behaviour.states.ToDoStateUtilService;
 import edu.examples.todos.usecases.todos.common.data.generating.ToDoCreationUtilService;
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
+import edu.examples.todos.usecases.todos.common.exceptions.ToDoStateIsNotCorrectException;
 import edu.examples.todos.usecases.todos.relationships.commands.assign_parent.AssignToDoParentCommand;
 import edu.examples.todos.usecases.todos.relationships.commands.assign_parent.IncorrectAssignToDoParentCommandException;
 import edu.examples.todos.usecases.todos.relationships.commands.assign_parent.ToDoIsInCorrectToBeParentException;
 import lombok.RequiredArgsConstructor;
+import org.javatuples.Pair;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import static edu.examples.todos.usecases.todos.common.data.generating.ToDoInfoGeneratingUtils.generateRandomToDoId;
-import static edu.examples.todos.usecases.todos.common.data.generating.ToDoInfoGeneratingUtils.generateRandomToDoName;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -28,13 +32,15 @@ public abstract class ToDoRelationshipsCommandUseCasesTests
 {
     private final ToDoCreationUtilService toDoCreationUtilService;
 
+    private final ToDoStateUtilService toDoStateUtilService;
+
     private final ToDoRelationshipsCommandUseCases toDoRelationshipsCommandUseCases;
 
     @Test
-    public void should_AssignToDoParent_When_Command_And_ParentToDo_Are_Correct()
+    public void should_AssignToDoParent_When_Command_And_ParentToDo_And_BothToDoStates_Are_Correct()
     {
-        var targetToDoId = toDoCreationUtilService.createToDo(generateRandomToDoName()).getId();
-        var parentToDoId = toDoCreationUtilService.createToDo(generateRandomToDoName()).getId();
+        var targetToDoId = toDoCreationUtilService.createRandomToDo().getId();
+        var parentToDoId = toDoCreationUtilService.createRandomToDo().getId();
 
         var command =
                 ToDoAccountingCommandUseCasesTestsUtils
@@ -95,9 +101,9 @@ public abstract class ToDoRelationshipsCommandUseCasesTests
     @Test
     public void should_ThrowException_When_AssigningDescendentToDo_As_Parent_For_AncestorToDo()
     {
-        var firstId = toDoCreationUtilService.createToDo(generateRandomToDoName()).getId();
-        var secondId = toDoCreationUtilService.createToDo(generateRandomToDoName()).getId();
-        var thirdId = toDoCreationUtilService.createToDo(generateRandomToDoName()).getId();
+        var firstId = toDoCreationUtilService.createRandomToDo().getId();
+        var secondId = toDoCreationUtilService.createRandomToDo().getId();
+        var thirdId = toDoCreationUtilService.createRandomToDo().getId();
 
         var result =
             toDoRelationshipsCommandUseCases
@@ -123,5 +129,39 @@ public abstract class ToDoRelationshipsCommandUseCasesTests
                 .create(result)
                 .expectError(ToDoIsInCorrectToBeParentException.class)
                 .verify();
+    }
+
+    @ParameterizedTest
+    @MethodSource("getIncorrectToDoStateIdsForParentAssigning")
+    public void should_ThrowException_When_TargetOrParentToDoStates_AreNot_Correct_For_ParentAssigning(Pair<String, String> incorrectToDoStateIds)
+    {
+        if (Objects.isNull(incorrectToDoStateIds))
+            return;
+
+        var incorrectTargetToDoStateId = incorrectToDoStateIds.getValue0();
+        var incorrectParentToDoStateId = incorrectToDoStateIds.getValue1();
+
+        var targetToDo = toDoCreationUtilService.createRandomToDo();
+        var parentToDo = toDoCreationUtilService.createRandomToDo();
+
+        if (StringUtils.hasText(incorrectTargetToDoStateId))
+            toDoStateUtilService.setToDoState(targetToDo, incorrectTargetToDoStateId);
+
+        if (StringUtils.hasText(incorrectParentToDoStateId))
+            toDoStateUtilService.setToDoState(parentToDo, incorrectParentToDoStateId);
+
+        var command = new AssignToDoParentCommand(targetToDo.getId(), parentToDo.getId());
+
+        var result = toDoRelationshipsCommandUseCases.assignToDoParent(command);
+
+        StepVerifier
+                .create(result)
+                .expectError(ToDoStateIsNotCorrectException.class)
+                .verify();
+    }
+
+    public Stream<Arguments> getIncorrectToDoStateIdsForParentAssigning()
+    {
+        return toDoStateUtilService.getIncorrectToDoStatesForParentAssigning().stream().map(Arguments::of);
     }
 }

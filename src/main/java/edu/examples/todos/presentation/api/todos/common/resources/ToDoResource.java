@@ -1,6 +1,6 @@
 package edu.examples.todos.presentation.api.todos.common.resources;
 
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.server.core.Relation;

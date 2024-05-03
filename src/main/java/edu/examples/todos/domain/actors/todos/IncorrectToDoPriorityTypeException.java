@@ -1,6 +1,6 @@
 package edu.examples.todos.domain.actors.todos;
 
-public class IncorrectToDoPriorityTypeException extends ToDoException
+public class IncorrectToDoPriorityTypeException extends ToDoPropertyIsNotCorrectException
 {
     public IncorrectToDoPriorityTypeException() {
         super("Incorrect To-Do priority type");

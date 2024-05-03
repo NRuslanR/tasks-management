@@ -2,7 +2,7 @@ package edu.examples.todos.presentation.api.todos.workcycle.performing;
 
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 import edu.examples.todos.usecases.todos.workcycle.performing.ToDoPerformingCommandUseCases;
 import edu.examples.todos.usecases.todos.workcycle.performing.perform.PerformToDoCommand;
 import edu.examples.todos.usecases.todos.workcycle.performing.perform.PerformToDoResult;

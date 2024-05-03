@@ -1,5 +1,6 @@
 package edu.examples.todos.usecases.common.mapping.config;
 
+import edu.examples.todos.domain.actors.todos.OperableToDo;
 import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
 import edu.examples.todos.domain.actors.todos.ToDoPriority;
@@ -8,11 +9,13 @@ import edu.examples.todos.domain.operations.creation.users.CreateUserRequest;
 import edu.examples.todos.domain.resources.users.User;
 import edu.examples.todos.domain.resources.users.UserId;
 import edu.examples.todos.domain.resources.users.UserName;
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDisplayStateResolver;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 import edu.examples.todos.usecases.users.accounting.UserDto;
 import edu.examples.todos.usecases.users.accounting.commands.create.CreateUserCommand;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -24,8 +27,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Configuration
+@RequiredArgsConstructor
 public class ModelMapperMappingConfig
 {
+    private final ToDoDisplayStateResolver toDoDisplayStateResolver;
+
     @Bean
     public ModelMapper modelMapper()
     {
@@ -178,8 +184,30 @@ public class ModelMapperMappingConfig
                 m.using(idConverter).map(ToDo::getParentToDoId, ToDoDto::setParentToDoId);
                 m.using(priorityTypeConverter).map(ToDo::getPriority, ToDoDto::setPriorityType);
                 m.using(priorityValueConverter).map(ToDo::getPriority, ToDoDto::setPriorityValue);
-                m.using(enumStringConverter).map(ToDo::getStatus, ToDoDto::setStatus);
+                m.using(enumStringConverter).map(ToDo::getState, ToDoDto::setState);
             }
         );
+
+        toDoDtoMap.setPostConverter(ctx -> {
+
+           var toDoDto = ctx.getDestination();
+
+           toDoDto.setDisplayState(toDoDisplayStateResolver.resolveDisplayState(toDoDto.getState()));
+
+           return toDoDto;
+
+        });
+
+        var operableToDoMap = mapper.createTypeMap(OperableToDo.class, ToDoDto.class);
+
+        operableToDoMap.setPostConverter(ctx -> {
+
+            var operableToDo = ctx.getSource();
+            var toDoDto = ctx.getDestination();
+
+            mapper.map(operableToDo.getTarget(), toDoDto);
+
+            return toDoDto;
+        });
     }
 }

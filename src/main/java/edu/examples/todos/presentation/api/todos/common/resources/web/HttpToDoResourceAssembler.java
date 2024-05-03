@@ -5,8 +5,9 @@ import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
 import edu.examples.todos.presentation.api.todos.relationships.web.HttpApiToDoRelationshipsController;
 import edu.examples.todos.presentation.api.todos.workcycle.performing.web.HttpApiToDoPerformingController;
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.Link;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -23,28 +24,51 @@ public class HttpToDoResourceAssembler extends ToDoResourceAssembler
     }
 
     @Override
-    protected void setLinksToModel(ToDoResource resource, ToDoDto toDoDto)
+    protected Link createGetToDoByIdLink(ToDoDto entity)
     {
-        resource.add(
-            linkTo(
-                    methodOn(HttpApiToDoAccountingController.class).getToDoById(toDoDto.getId())
-            ).withSelfRel().toMono().block(),
-            linkTo(
-                    methodOn(HttpApiToDoAccountingController.class).getToDoFullInfoById(toDoDto.getId())
-            ).withRel("full-info").toMono().block(),
-            linkTo(
-                    methodOn(HttpApiToDoAccountingController.class).updateToDo(toDoDto.getId(), null)
-            ).withRel("update").toMono().block(),
-            linkTo(
-                    methodOn(HttpApiToDoAccountingController.class).removeToDo(toDoDto.getId())
-            ).withRel("remove").toMono().block(),
-            linkTo(
-                    methodOn(HttpApiToDoRelationshipsController.class).assignToDoParent(toDoDto.getId(), null)
-            ).withRel("assign-parent").toMono().block(),
-            linkTo(
-                methodOn(HttpApiToDoPerformingController.class).performToDo(toDoDto.getId())
-            ).withRel("perform").toMono().block()
-        );
+        return linkTo(
+                methodOn(HttpApiToDoAccountingController.class).getToDoById(entity.getId())
+        ).withSelfRel().toMono().block();
+    }
+
+    @Override
+    protected Link createGetToDoFullInfoByIdLink(ToDoDto entity)
+    {
+        return linkTo(
+                methodOn(HttpApiToDoAccountingController.class).getToDoFullInfoById(entity.getId())
+        ).withRel("full-info").toMono().block();
+    }
+
+    @Override
+    protected Link createUpdateToDoLink(ToDoDto entity)
+    {
+        return linkTo(
+                methodOn(HttpApiToDoAccountingController.class).updateToDo(entity.getId(), null)
+        ).withRel("update").toMono().block();
+    }
+
+    @Override
+    protected Link createRemoveToDoLink(ToDoDto entity)
+    {
+        return linkTo(
+                methodOn(HttpApiToDoAccountingController.class).removeToDo(entity.getId())
+        ).withRel("remove").toMono().block();
+    }
+
+    @Override
+    protected Link createAssignToDoParentLink(ToDoDto entity)
+    {
+        return linkTo(
+                methodOn(HttpApiToDoRelationshipsController.class).assignToDoParent(entity.getId(), null)
+        ).withRel("assign-parent").toMono().block();
+    }
+
+    @Override
+    protected Link createPerformToDoLink(ToDoDto entity)
+    {
+        return linkTo(
+                methodOn(HttpApiToDoPerformingController.class).performToDo(entity.getId())
+        ).withRel("perform").toMono().block();
     }
 
     @Override

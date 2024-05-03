@@ -1,6 +1,7 @@
 package edu.examples.todos.domain.decisionsupport.search.todos;
 
 import edu.examples.todos.domain.actors.todos.ToDo;
+import edu.examples.todos.domain.actors.todos.ToDoId;
 import edu.examples.todos.domain.actors.todos.ToDoList;
 import edu.examples.todos.domain.common.exceptions.DomainException;
 import edu.examples.todos.persistence.repositories.todos.ToDoRepository;
@@ -15,6 +16,18 @@ import java.util.Optional;
 public class StandardToDoFinder implements ToDoFinder
 {
     private final ToDoRepository toDoRepository;
+
+    @Override
+    public Optional<ToDo> findToDoById(ToDoId id) throws NullPointerException, DomainException
+    {
+        return findToDoByIdAsync(id).blockOptional();
+    }
+
+    @Override
+    public Mono<ToDo> findToDoByIdAsync(ToDoId id) throws NullPointerException, DomainException
+    {
+        return Mono.fromCallable(() -> toDoRepository.findById(id).orElse(null));
+    }
 
     @Override
     public Optional<ToDo> findToDoByName(String name) throws NullPointerException, DomainException

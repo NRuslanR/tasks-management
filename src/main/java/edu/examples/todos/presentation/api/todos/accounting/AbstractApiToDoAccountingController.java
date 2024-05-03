@@ -6,8 +6,6 @@ import edu.examples.todos.presentation.api.todos.common.resources.ToDoFullInfoRe
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResource;
 import edu.examples.todos.presentation.api.todos.common.resources.ToDoResourceAssembler;
 import edu.examples.todos.usecases.common.accounting.queries.FindObjectsQuery;
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
-import edu.examples.todos.usecases.todos.accounting.ToDoFullInfoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.ToDoAccountingCommandUseCases;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
@@ -21,6 +19,8 @@ import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdQ
 import edu.examples.todos.usecases.todos.accounting.queries.getbyid.GetToDoByIdResult;
 import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.GetToDoFullInfoByIdQuery;
 import edu.examples.todos.usecases.todos.accounting.queries.getfullinfobyid.GetToDoFullInfoByIdResult;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoFullInfoDto;
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

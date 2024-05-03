@@ -7,8 +7,10 @@ import lombok.NonNull;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Optional;
 
+/* refactor: it would be possible to divide this entity to multiple ones, each one per status */
 @Data
 @Entity
 @Table(name = "todos")
@@ -35,15 +37,9 @@ public class ToDo extends BaseEntity<ToDoId>
     {
         super(id);
 
+        setCreatedState(createdAt);
         setName(name);
         setPriority(priority);
-        setCreatedStatus(createdAt);
-    }
-
-    private void setCreatedStatus(LocalDateTime value)
-    {
-        status = ToDoStatus.CREATED;
-        createdAt = value;
     }
 
     protected ToDo()
@@ -55,6 +51,8 @@ public class ToDo extends BaseEntity<ToDoId>
 
     public void setName(String newName) throws ToDoNameInCorrectException
     {
+        ThrowIfToDoStateIsNotCorrectToBeChanged();
+
         if (!StringUtils.hasText(newName))
         {
             throw new ToDoNameInCorrectException();
@@ -66,46 +64,130 @@ public class ToDo extends BaseEntity<ToDoId>
     @NonNull
     @Embedded
     @AttributeOverrides({
-            @AttributeOverride(
-                    name = "type",
-                    column = @Column(name = "priority_type")
-            ),
-            @AttributeOverride(
-                    name = "value",
-                    column = @Column(name = "priority_value")
-            )
+        @AttributeOverride(
+            name = "type",
+            column = @Column(name = "priority_type")
+        ),
+        @AttributeOverride(
+            name = "value",
+            column = @Column(name = "priority_value")
+        )
     })
     private ToDoPriority priority;
 
     public void changePriorityType(ToDoPriorityType type)
     {
-        priority = priority.changeType(type);
+        setPriority(priority.changeType(type));
     }
 
     public void changePriorityValue(int value)
     {
-        priority = priority.changeValue(value);
+        setPriority(priority.changeValue(value));
+    }
+
+    public void setPriority(ToDoPriority value)
+    {
+        ThrowIfToDoStateIsNotCorrectToBeChanged();
+
+        priority = value;
     }
 
     private String description;
-    
+
+    public void setDescription(String value)
+    {
+        ThrowIfToDoStateIsNotCorrectToBeChanged();
+
+        description = value;
+    }
+
+    /* refactor: */
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(
+                    name = "value",
+                    column = @Column(name = "parentToDoId")
+            )
+    })
+    /*
+        In most use-cases sub-todos aren't required so in order to fall not into
+        N + 1 problem and for performance this solution is used. Lazy makes To-Do model and tracing more complex
+        and EntityGraph fetches redundant data that's question is why are sub-todos necessary if just
+        current To-Do's name is required to change. This DDD approach
+     */
+    private ToDoId parentToDoId;
+
+    public void setParentToDoId(ToDoId value)
+    {
+        ThrowIfToDoStateIsNotCorrectToBeChanged();
+
+        parentToDoId = value;
+    }
+
+    @Enumerated(EnumType.STRING)
+    @NonNull
+    private ToDoState state;
+
+    public void perform() throws ToDoStateIsNotCorrectDomainException
+    {
+        ThrowIfToDoStateIsNotCorrectToBePerformed();
+
+        setPerformedState();
+    }
+
+    public boolean isPerformed()
+    {
+        return !Objects.isNull(performedAt);
+    }
+
+    private void ThrowIfToDoStateIsNotCorrectToBeChanged()
+    {
+        ThrowIfToDoStateIs(ToDoState.PERFORMED, "To-Do \"" + getName() + "\" can't be changed because it was performed");
+    }
+
+    private void ThrowIfToDoStateIsNotCorrectToBePerformed()
+    {
+        ThrowIfToDoStateIs(ToDoState.PERFORMED, "\"To-Do \"" + getName() + "\" is already performed\"");
+    }
+
+    private void ThrowIfToDoStateIs(ToDoState value)
+    {
+        ThrowIfToDoStateIs(value, "");
+    }
+
+    private void ThrowIfToDoStateIs(ToDoState value, String message)
+    {
+        if (state == value)
+        {
+            throw StringUtils.hasText(message) ? new ToDoStateIsNotCorrectDomainException(message) :
+                    new ToDoStateIsNotCorrectDomainException();
+        }
+    }
+
+    private void setCreatedState(LocalDateTime value)
+    {
+        state = ToDoState.CREATED;
+        createdAt = adjustDate(value);
+    }
+
+    private void setPerformedState()
+    {
+        state = ToDoState.PERFORMED;
+        performedAt = LocalDateTime.now();
+    }
+
     @Temporal(TemporalType.TIMESTAMP)
     @NonNull
     private LocalDateTime createdAt;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    @NonNull
-    private LocalDateTime performedAt;
-
-    /* refactor: it woulde be possible to divide this entity to multiple, each entity per status */
-    @Enumerated(EnumType.ORDINAL)
-    @NonNull
-    private ToDoStatus status;
 
     private void setCreatedAt(@NonNull LocalDateTime value)
     {
         createdAt = adjustDate(value);
     }
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @NonNull
+    private LocalDateTime performedAt;
 
     @PrePersist
     public void prePersist()
@@ -128,42 +210,5 @@ public class ToDo extends BaseEntity<ToDoId>
     private LocalDateTime adjustDate(LocalDateTime value)
     {
         return Optional.ofNullable(value).map(v -> v.withNano(0)).orElse(null);
-    }
-
-    /* refactor: */
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(
-                    name = "value",
-                    column = @Column(name = "parentToDoId")
-            )
-    })
-    /*
-        In most use-cases sub-todos aren't required so in order to fall not into
-        N + 1 problem and for performance this solution is used. Lazy makes To-Do model and tracing more complex
-        and EntityGraph fetches redundant data that's question is why are sub-todos necessary if just
-        current To-Do's name is required to change. This DDD approach
-     */
-    private ToDoId parentToDoId;
-
-    public void perform()
-        throws
-            ToDoStatusIsNotCorrectDomainException
-    {
-        ThrowIfToDoStatusIsNotCorrect();
-
-        setPerformedStatus();
-    }
-
-    private void ThrowIfToDoStatusIsNotCorrect()
-    {
-        if (status == ToDoStatus.PERFORMED)
-            throw new ToDoStatusIsNotCorrectDomainException("To-Do \"" + getName() + "\" is already performed");
-    }
-
-    private void setPerformedStatus()
-    {
-        status = ToDoStatus.PERFORMED;
-        performedAt = LocalDateTime.now();
     }
 }

@@ -1,25 +1,25 @@
 package edu.examples.todos.usecases.todos.accounting.commands;
 
 import edu.examples.todos.domain.actors.todos.ToDoPriorityType;
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
-import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
 import edu.examples.todos.usecases.todos.accounting.commands.create.IncorrectCreateToDoCommandException;
 import edu.examples.todos.usecases.todos.accounting.commands.create.ToDoAlreadyExistsException;
 import edu.examples.todos.usecases.todos.accounting.commands.remove.IncorrectRemoveToDoCommandException;
 import edu.examples.todos.usecases.todos.accounting.commands.remove.RemoveToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.IncorrectUpdateToDoCommandException;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
+import edu.examples.todos.usecases.todos.common.behaviour.states.ToDoStateUtilService;
+import edu.examples.todos.usecases.todos.common.data.generating.ToDoCreationUtilService;
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
+import edu.examples.todos.usecases.todos.common.exceptions.ToDoStateIsNotCorrectException;
 import lombok.RequiredArgsConstructor;
-import org.javatuples.KeyValue;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.platform.commons.util.StringUtils;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -37,6 +37,12 @@ public abstract class ToDoAccountingCommandUseCasesTests
 {
     protected final ToDoAccountingCommandUseCases toDoAccountingCommandUseCases;
 
+    protected final UtilToDoAccountingCommandUseCases utilToDoAccountingCommandUseCases;
+
+    protected final ToDoCreationUtilService toDoCreationUtilService;
+
+    protected final ToDoStateUtilService toDoStateUtilService;
+
     @AfterAll
     public void clearFixtureForAll()
     {
@@ -46,7 +52,8 @@ public abstract class ToDoAccountingCommandUseCasesTests
     @Test
     public void should_Create_ToDo_When_CreateToDoCommand_IsCorrect_And_ToDoDoesNotExistsYet()
     {
-        var commandResultPair = runCreateRandomToDoCommandFor();
+        var commandResultPair =
+                utilToDoAccountingCommandUseCases.runCreateRandomToDoCommand();
 
         var command = commandResultPair.getKey();
         var result = commandResultPair.getValue();
@@ -60,10 +67,21 @@ public abstract class ToDoAccountingCommandUseCasesTests
                 var toDoDto = v.getToDo();
 
                 assertNotNull(toDoDto);
-                assertTrue(StringUtils.doesNotContainWhitespace(toDoDto.getId()));
+
+                assertFalse(StringUtils.containsWhitespace(toDoDto.getId()));
                 assertEquals(command.getName(), toDoDto.getName());
                 assertEquals(command.getDescription(), toDoDto.getDescription());
                 assertNotNull(toDoDto.getCreatedAt());
+
+                var actionsAvailability = toDoDto.getActionsAvailability();
+
+                assertNotNull(actionsAvailability);
+
+                assertTrue(actionsAvailability.isViewingAvailable());
+                assertTrue(actionsAvailability.isChangingAvailable());
+                assertTrue(actionsAvailability.isRemovingAvailable());
+                assertTrue(actionsAvailability.isParentAssigningAvailable());
+                assertTrue(actionsAvailability.isPerformingAvailable());
             })
             .verifyComplete();
     }
@@ -93,16 +111,20 @@ public abstract class ToDoAccountingCommandUseCasesTests
     }
 
     @Test
-    public void should_ThrowException_When_ToDoAlreadyExists()
+    public void should_ThrowException_When_ToDoAlreadyExists_To_Be_Created()
     {
         var toDoName = generateRandomToDoName();
 
         var result =
-                runCreateToDoCommandFor(toDoName)
+                utilToDoAccountingCommandUseCases
+                        .runCreateToDoCommandFor(toDoName)
                         .getValue()
                         .then(
                                 Mono.defer(
-                                        () -> runCreateToDoCommandFor(toDoName).getValue()
+                                        () ->
+                                            utilToDoAccountingCommandUseCases
+                                                .runCreateToDoCommandFor(toDoName)
+                                                .getValue()
                                 )
                         );
 
@@ -113,11 +135,11 @@ public abstract class ToDoAccountingCommandUseCasesTests
     }
 
     @Test
-    public void should_UpdateToDo_When_UpdateToDoCommand_IsCorrect_And_ToDoExists()
+    public void should_UpdateToDo_When_UpdateToDoCommand_IsCorrect_And_ToDoExists_And_ToDoState_IsCorrect()
     {
         var updateToDoCommand =
                 ToDoAccountingCommandUseCasesTestsUtils.createSimpleCommandForToDoUpdating(
-                        createToDo(generateRandomToDoName()).getId()
+                        toDoCreationUtilService.createRandomToDo().getId()
                 );
 
         var updateToDoResult = toDoAccountingCommandUseCases.updateToDo(updateToDoCommand);
@@ -152,7 +174,7 @@ public abstract class ToDoAccountingCommandUseCasesTests
 
     public Stream<Arguments> createIncorrectCommandsForToDoUpdating()
     {
-        var toDoId = createToDo(generateRandomToDoName()).getId();
+        var toDoId = toDoCreationUtilService.createRandomToDo().getId();
 
         return Stream.of(
                 Arguments.of(
@@ -179,10 +201,38 @@ public abstract class ToDoAccountingCommandUseCasesTests
                 .verify();
     }
 
-    @Test
-    public void should_RemoveToDo_When_RemoveToDoCommand_IsCorrect_And_ToDoExists()
+    @ParameterizedTest
+    @MethodSource("getIncorrectToDoStateIdsForUpdate")
+    public void should_ThrowException_When_ToDoSate_IsInCorrect_To_Be_Updated(String incorrectToDoStateId)
     {
-        var toDoId = createToDo(generateRandomToDoName()).getId();
+        if (!StringUtils.hasText(incorrectToDoStateId))
+            return;
+
+        var toDo = toDoCreationUtilService.createRandomToDo();
+
+        toDoStateUtilService.setToDoState(toDo, incorrectToDoStateId);
+
+        var command =
+            ToDoAccountingCommandUseCasesTestsUtils
+                .createSimpleCommandForToDoUpdating(toDo.getId());
+
+        var result= toDoAccountingCommandUseCases.updateToDo(command);
+
+        StepVerifier
+                .create(result)
+                .expectError(ToDoStateIsNotCorrectException.class)
+                .verify();
+    }
+
+    public Stream<Arguments> getIncorrectToDoStateIdsForUpdate()
+    {
+        return toDoStateUtilService.getIncorrectToDoStatesForUpdate().stream().map(Arguments::of);
+    }
+
+    @Test
+    public void should_RemoveToDo_When_RemoveToDoCommand_IsCorrect_And_ToDoExists_And_ToDoState_Is_Correct()
+    {
+        var toDoId = toDoCreationUtilService.createRandomToDo().getId();
 
         var command = ToDoAccountingCommandUseCasesTestsUtils.createCommandForToDoRemoving(toDoId);
 
@@ -238,26 +288,31 @@ public abstract class ToDoAccountingCommandUseCasesTests
                 .verify();
     }
 
-    public ToDoDto createToDo(String toDoName)
+    @ParameterizedTest
+    @MethodSource("getIncorrectToDoStateIdsForRemove")
+    public void should_ThrowException_When_ToDoSate_IsInCorrect_To_Be_Removed(String incorrectToDoStateId)
     {
-        return
-                runCreateToDoCommandFor(toDoName)
-                        .getValue()
-                        .block()
-                        .getToDo();
+        if (!StringUtils.hasText(incorrectToDoStateId))
+            return;
+
+        var toDo = toDoCreationUtilService.createRandomToDo();
+
+        toDoStateUtilService.setToDoState(toDo, incorrectToDoStateId);
+
+        var command =
+                ToDoAccountingCommandUseCasesTestsUtils
+                    .createCommandForToDoRemoving(toDo.getId());
+
+        var result = toDoAccountingCommandUseCases.removeToDo(command);
+
+        StepVerifier
+            .create(result)
+            .expectError(ToDoStateIsNotCorrectException.class)
+            .verify();
     }
 
-    private KeyValue<CreateToDoCommand, Mono<CreateToDoResult>> runCreateRandomToDoCommandFor()
+    public Stream<Arguments> getIncorrectToDoStateIdsForRemove()
     {
-        return runCreateToDoCommandFor(generateRandomToDoName());
-    }
-
-    private KeyValue<CreateToDoCommand, Mono<CreateToDoResult>> runCreateToDoCommandFor(String toDoName)
-    {
-        var command = ToDoAccountingCommandUseCasesTestsUtils.createSimpleCommandForToDoCreating(toDoName);
-
-        var result = toDoAccountingCommandUseCases.createToDo(command);
-
-        return KeyValue.with(command, result);
+        return toDoStateUtilService.getIncorrectToDoStatesForRemove().stream().map(Arguments::of);
     }
 }

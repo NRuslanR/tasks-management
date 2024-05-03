@@ -1,6 +1,6 @@
 package edu.examples.todos.domain.actors.todos;
 
-public enum ToDoStatus
+public enum ToDoState
 {
     CREATED,
     PERFORMED

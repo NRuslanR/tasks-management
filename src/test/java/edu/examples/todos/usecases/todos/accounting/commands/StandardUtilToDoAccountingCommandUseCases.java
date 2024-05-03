@@ -1,10 +1,10 @@
 package edu.examples.todos.usecases.todos.accounting.commands;
 
 import edu.examples.todos.common.config.profiles.EnabledIfTestsProfile;
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoResult;
 import edu.examples.todos.usecases.todos.common.data.generating.ToDoCreationUtilService;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 import lombok.RequiredArgsConstructor;
 import org.javatuples.KeyValue;
 import org.springframework.stereotype.Component;

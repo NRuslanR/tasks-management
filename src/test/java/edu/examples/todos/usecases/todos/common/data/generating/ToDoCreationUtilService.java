@@ -1,6 +1,6 @@
 package edu.examples.todos.usecases.todos.common.data.generating;
 
-import edu.examples.todos.usecases.todos.accounting.ToDoDto;
+import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 
 import java.util.List;
 import java.util.stream.Stream;

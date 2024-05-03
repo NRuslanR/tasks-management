@@ -1,6 +1,7 @@
 package edu.examples.todos.persistence.repositories.todos;
 
 import edu.examples.todos.common.config.profiles.DefaultProfile;
+import edu.examples.todos.domain.actors.todos.OperableToDo;
 import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
 import edu.examples.todos.persistence.repositories.common.EntityRepository;
@@ -29,4 +30,31 @@ public interface ToDoRepository extends EntityRepository<ToDo, ToDoId>
             nativeQuery = true
     )
     List<ToDo> findAllSubToDosRecursivelyFor(@Param("todo_id") UUID toDoId);
+
+    default OperableToDo save(OperableToDo toDo)
+    {
+        return OperableToDo.of(save(toDo.getTarget()), toDo.getActionsAvailability());
+    }
+
+    default OperableToDo delete(OperableToDo toDo)
+    {
+        delete(toDo.getTarget());
+
+        return toDo;
+    }
+
+    default OperableToDo deleteRecursively(OperableToDo toDo)
+    {
+        deleteRecursively(toDo.getTarget());
+
+        return toDo;
+    }
+
+    default void deleteRecursively(ToDo toDo)
+    {
+        var subToDos = findAllSubToDosRecursivelyFor(toDo.getId().getValue());
+
+        deleteAll(subToDos);
+        delete(toDo);
+    }
 }
