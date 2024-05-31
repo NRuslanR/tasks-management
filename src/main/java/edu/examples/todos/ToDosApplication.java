@@ -4,6 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
+import org.springframework.boot.web.reactive.server.ReactiveWebServerFactory;
+import org.springframework.context.annotation.Bean;
 import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
@@ -19,8 +23,6 @@ import java.util.Arrays;
     6. Add entity per To-Do domain object's life cycle stage
     7. Add domain services to figure out user's access rights and using it to form available hypermedia links
         in the controllers' returned resources
-    7. Add standard userid/password-based authentication
-    8. Add JWT token-based authentication
     9. controller's api-prefix value extract to application.yaml but WebFluxLinkBuilder doesn't resolve SpEL
     10. Turn into to To-Dos microservice (
             API Gateway, two microservices - business and cqrs, Kafka, RabbitMQ,
@@ -31,19 +33,27 @@ import java.util.Arrays;
     12. Consider the MyBatis using within CQRS query use-case services
  */
 
-@SpringBootApplication
+@SpringBootApplication(
+        /*exclude = {
+                SecurityAutoConfiguration.class,
+                UserDetailsServiceAutoConfiguration.class
+        }*/
+)
 @Slf4j
-public class ToDosApplication implements CommandLineRunner
-{
-    public static void main(String[] args)
-    {
+public class ToDosApplication implements CommandLineRunner {
+    public static void main(String[] args) {
         SpringApplication.run(ToDosApplication.class);
     }
 
     @Override
-    public void run(String... args) throws Exception
-    {
+    public void run(String... args) throws Exception {
         log.info("CONVERTERS: " + StringUtils.collectionToCommaDelimitedString(Arrays.asList(args)));
     }
 
+    @Bean
+    @ConditionalOnExpression("false")
+    public ReactiveWebServerFactory reactiveWebServerFactory()
+    {
+        return new NettyReactiveWebServerFactory();
+    }
 }

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,11 +53,16 @@ public class StandardUserCreationService implements UserCreationService
 
     private User createUserFrom(CreateUserRequest request)
     {
-        return User.of(
-                UserId.of(UUID.randomUUID()),
-                request.getName(),
-                createUserClaimsFrom(request)
-        );
+        var user =
+                User.of(
+                    UserId.of(UUID.randomUUID()),
+                    request.getName(),
+                    createUserClaimsFrom(request)
+                );
+
+        user.setCreatedAt(LocalDateTime.now());
+
+        return user;
     }
 
     private UserClaims createUserClaimsFrom(CreateUserRequest request)

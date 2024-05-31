@@ -2,9 +2,7 @@ package edu.examples.todos.domain.resources.users;
 
 import edu.examples.todos.domain.common.entities.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
 import lombok.Data;
-import lombok.Setter;
 import lombok.experimental.Delegate;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -24,7 +22,6 @@ public class User extends BaseEntity<UserId>
     private UserClaims claims;
 
     @Temporal(TemporalType.TIMESTAMP)
-    @Setter(AccessLevel.NONE)
     @CreatedDate
     private LocalDateTime createdAt;
 

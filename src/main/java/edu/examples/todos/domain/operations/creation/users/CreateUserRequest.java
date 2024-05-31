@@ -9,7 +9,7 @@ import lombok.NonNull;
 @Data
 @NonNull
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(staticName = "of")
 public class CreateUserRequest
 {
     private UserName name;

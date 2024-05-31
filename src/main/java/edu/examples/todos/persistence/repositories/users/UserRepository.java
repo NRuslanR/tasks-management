@@ -10,4 +10,5 @@ import org.springframework.stereotype.Repository;
 @DefaultProfile
 public interface UserRepository extends JpaRepository<User, UserId>
 {
+
 }

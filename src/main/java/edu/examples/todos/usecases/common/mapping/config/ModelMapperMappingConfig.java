@@ -9,6 +9,8 @@ import edu.examples.todos.domain.operations.creation.users.CreateUserRequest;
 import edu.examples.todos.domain.resources.users.User;
 import edu.examples.todos.domain.resources.users.UserId;
 import edu.examples.todos.domain.resources.users.UserName;
+import edu.examples.todos.features.clients.sign_up.SignUpRequest;
+import edu.examples.todos.presentation.api.security.services.clients.ClientDetails;
 import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 import edu.examples.todos.usecases.todos.common.dtos.ToDoDisplayStateResolver;
@@ -26,6 +28,9 @@ import org.springframework.util.StringUtils;
 import java.util.Objects;
 import java.util.Optional;
 
+/*
+refactor: split on multiple configs by domain aggregates, use-cases commands, sign-up, sign-in requests and etc
+ */
 @Configuration
 @RequiredArgsConstructor
 public class ModelMapperMappingConfig
@@ -62,20 +67,12 @@ public class ModelMapperMappingConfig
 
     private void customizeCommandsMappings(ModelMapper mapper)
     {
-        var createUserMap = mapper.createTypeMap(CreateUserCommand.class, CreateUserRequest.class);
+        customizeToDoCommandsMappings(mapper);
+        customizeUserCommandsMappings(mapper);
+    }
 
-        Converter<CreateUserCommand, CreateUserRequest> createUserCommandConverter =
-                ctx -> {
-                    var source = ctx.getSource();
-                    var destination = ctx.getDestination();
-
-                    destination.setName(UserName.of(source.getFirstName(), source.getLastName()));
-
-                    return destination;
-                };
-
-        createUserMap.setPostConverter(createUserCommandConverter);
-
+    private void customizeToDoCommandsMappings(ModelMapper mapper)
+    {
         var createToDoRequestMap =
                 mapper.createTypeMap(CreateToDoCommand.class, CreateToDoRequest.class);
 
@@ -125,10 +122,50 @@ public class ModelMapperMappingConfig
         toDoMap.setPostConverter(updateToDoCommandToDoConverter);
     }
 
+    private void customizeUserCommandsMappings(ModelMapper mapper)
+    {
+        var createUserMap = mapper.createTypeMap(CreateUserCommand.class, CreateUserRequest.class);
+
+        Converter<CreateUserCommand, CreateUserRequest> createUserCommandConverter =
+                ctx -> {
+                    var source = ctx.getSource();
+                    var destination = ctx.getDestination();
+
+                    destination.setName(UserName.of(source.getFirstName(), source.getLastName()));
+
+                    return destination;
+                };
+
+        createUserMap.setPostConverter(createUserCommandConverter);
+
+        var signUpCreateUserMap = mapper.createTypeMap(SignUpRequest.class, CreateUserRequest.class);
+
+        Converter<SignUpRequest, CreateUserRequest> signUpCreateUserConverter =
+                ctx -> {
+                    var source = ctx.getSource();
+                    var destination = ctx.getDestination();
+
+                    destination.setName(UserName.of(source.getFirstName(), source.getLastName()));
+
+                    return destination;
+                };
+
+        signUpCreateUserMap.setPostConverter(signUpCreateUserConverter);
+    }
+
     private void customizeDtosMappings(ModelMapper mapper)
     {
         customizeUserMappings(mapper);
+        customizeClientDetailsMappings(mapper);
         customizeToDoMappings(mapper);
+    }
+
+    private void customizeClientDetailsMappings(ModelMapper mapper)
+    {
+        var clientDetailsMap = mapper.createTypeMap(SignUpRequest.class, ClientDetails.class);
+
+        clientDetailsMap.addMapping(SignUpRequest::getClientId, ClientDetails::setId);
+        clientDetailsMap.addMapping(SignUpRequest::getClientSecret, ClientDetails::setSecret);
     }
 
     private void customizeUserMappings(ModelMapper mapper)

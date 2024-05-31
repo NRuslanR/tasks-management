@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "application.security.authentication.basic.admin.secret",
+      "type": "java.lang.String",
+      "description": "Description for application.security.authentication.basic.admin.secret."
+  }
+] }

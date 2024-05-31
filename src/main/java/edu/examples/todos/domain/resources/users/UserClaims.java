@@ -22,6 +22,11 @@ public class UserClaims
         canRemoveForeignTodos = false;
     }
 
+    public static UserClaims unbounded()
+    {
+        return UserClaims.of(Integer.MAX_VALUE, true, true, true);
+    }
+
     public static UserClaims of(
             int allowedToDoCreationCount,
             boolean canEditForeignTodos,

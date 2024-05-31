@@ -13,3 +13,23 @@ spring:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 
+  main:
+    web-application-type: servlet
+
+application:
+  security:
+    authentication:
+      methods:
+        active: jwt
+        basic:
+          realm-name: default
+        jwt:
+          issuer: Task Management Application
+          secret-key:
+          expiry-time-sec: 300
+      admin:
+        id: admin
+        secret: admin
+        first-name: Ruslan
+        last-name: Nigmatullin
+
