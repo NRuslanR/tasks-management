@@ -80,15 +80,15 @@ public abstract class ToDoRelationshipsCommandUseCasesTests
             return
                     Stream.of(
                             Arguments.of(new AssignToDoParentCommand()),
-                            Arguments.of(new AssignToDoParentCommand(null, generateRandomToDoId())),
-                            Arguments.of(new AssignToDoParentCommand(generateRandomToDoId(), null))
+                            Arguments.of(AssignToDoParentCommand.of(null, generateRandomToDoId())),
+                            Arguments.of(AssignToDoParentCommand.of(generateRandomToDoId(), null))
                     );
     }
 
     @Test
     public void should_ThrowException_When_TargetOrParentToDos_NotFound()
     {
-        var command = new AssignToDoParentCommand(generateRandomToDoId(), generateRandomToDoId());
+        var command = AssignToDoParentCommand.of(generateRandomToDoId(), generateRandomToDoId());
 
         var result = toDoRelationshipsCommandUseCases.assignToDoParent(command);
 
@@ -107,12 +107,12 @@ public abstract class ToDoRelationshipsCommandUseCasesTests
 
         var result =
             toDoRelationshipsCommandUseCases
-                    .assignToDoParent(new AssignToDoParentCommand(secondId, firstId))
+                    .assignToDoParent(AssignToDoParentCommand.of(secondId, firstId))
                     .then(
                             Mono.defer(
                                     () ->
                                         toDoRelationshipsCommandUseCases.assignToDoParent(
-                                                new AssignToDoParentCommand(thirdId, secondId)
+                                                AssignToDoParentCommand.of(thirdId, secondId)
                                         )
                             )
                     )
@@ -120,7 +120,7 @@ public abstract class ToDoRelationshipsCommandUseCasesTests
                             Mono.defer(
                                     () ->
                                         toDoRelationshipsCommandUseCases.assignToDoParent(
-                                                new AssignToDoParentCommand(firstId, thirdId)
+                                                AssignToDoParentCommand.of(firstId, thirdId)
                                         )
                             )
                     );
@@ -150,7 +150,7 @@ public abstract class ToDoRelationshipsCommandUseCasesTests
         if (StringUtils.hasText(incorrectParentToDoStateId))
             toDoStateUtilService.setToDoState(parentToDo, incorrectParentToDoStateId);
 
-        var command = new AssignToDoParentCommand(targetToDo.getId(), parentToDo.getId());
+        var command = AssignToDoParentCommand.of(targetToDo.getId(), parentToDo.getId());
 
         var result = toDoRelationshipsCommandUseCases.assignToDoParent(command);
 

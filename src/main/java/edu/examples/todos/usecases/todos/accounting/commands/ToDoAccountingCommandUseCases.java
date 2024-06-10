@@ -11,21 +11,22 @@ import edu.examples.todos.usecases.todos.accounting.commands.update.IncorrectUpd
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoResult;
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
+import jakarta.validation.Valid;
 import reactor.core.publisher.Mono;
 
 /* refactor: to turn "throws" to corresponding comment because the exceptions will be wrapped by Mono as well */
 public interface ToDoAccountingCommandUseCases
 {
-    Mono<CreateToDoResult> createToDo(CreateToDoCommand command)
+    Mono<CreateToDoResult> createToDo(@Valid CreateToDoCommand command)
             throws NullPointerException, IncorrectCreateToDoCommandException, ToDoAlreadyExistsException;
 
-    Mono<UpdateToDoResult> updateToDo(UpdateToDoCommand updateToDoCommand)
+    Mono<UpdateToDoResult> updateToDo(@Valid UpdateToDoCommand updateToDoCommand)
             throws
                 NullPointerException,
                 IncorrectUpdateToDoCommandException,
                 ToDoNotFoundException;
 
-    Mono<RemoveToDoResult> removeToDo(RemoveToDoCommand command)
+    Mono<RemoveToDoResult> removeToDo(@Valid RemoveToDoCommand command)
         throws
             NullPointerException,
             IncorrectRemoveToDoCommandException,

@@ -81,6 +81,7 @@ public class ModelMapperMappingConfig
 
                     var source = ctx.getSource();
 
+                    ctx.getDestination().setAuthorId(UserId.of(source.getAuthorId()));
                     ctx.getDestination().setPriority(
 
                             StringUtils.hasText(source.getPriorityType()) ?

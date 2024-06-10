@@ -18,6 +18,9 @@ public class JdbcToDoDtoMapper extends DataClassRowMapper<ToDoDto>
     private final DataClassRowMapper<ToDoActionsAvailabilityDto> actionsAvailabilityDtoMapper =
             new DataClassRowMapper<>(ToDoActionsAvailabilityDto.class);
 
+//    private final DataClassRowMapper<UserDto> userDtoMapper =
+//            new DataClassRowMapper<>(UserDto.class);
+
     private final ToDoDisplayStateResolver toDoDisplayStateResolver;
 
     public JdbcToDoDtoMapper(ToDoDisplayStateResolver toDoDisplayStateResolver)
@@ -35,7 +38,7 @@ public class JdbcToDoDtoMapper extends DataClassRowMapper<ToDoDto>
         toDoDto.setState(toDoDto.getState().toLowerCase());
         toDoDto.setActionsAvailability(actionsAvailabilityDtoMapper.mapRow(rs, rowNumber));
         toDoDto.setDisplayState(toDoDisplayStateResolver.resolveDisplayState(toDoDto.getState()));
-
+        //toDoDto.setAuthor(userDtoMapper.mapRow(rs, rowNumber));
         return toDoDto;
     }
 }

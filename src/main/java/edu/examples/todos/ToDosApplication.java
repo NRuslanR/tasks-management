@@ -19,10 +19,7 @@ import java.util.Arrays;
         for responses of the created resources
     3. Add JOOQ support to CQRS JdbcToDoAccountingQueryUseCases class
     4. Add RSQL support related with JOOQ to implement the data filtering via http REST API
-    5. Add Author for To-Do and related access rights' domain logic
     6. Add entity per To-Do domain object's life cycle stage
-    7. Add domain services to figure out user's access rights and using it to form available hypermedia links
-        in the controllers' returned resources
     9. controller's api-prefix value extract to application.yaml but WebFluxLinkBuilder doesn't resolve SpEL
     10. Turn into to To-Dos microservice (
             API Gateway, two microservices - business and cqrs, Kafka, RabbitMQ,
@@ -34,10 +31,10 @@ import java.util.Arrays;
  */
 
 @SpringBootApplication(
-        /*exclude = {
-                SecurityAutoConfiguration.class,
-                UserDetailsServiceAutoConfiguration.class
-        }*/
+//        exclude = {
+//                SecurityAutoConfiguration.class,
+//                UserDetailsServiceAutoConfiguration.class
+//        }
 )
 @Slf4j
 public class ToDosApplication implements CommandLineRunner {

@@ -19,11 +19,12 @@ public class ToDoAccountingCommandUseCasesTestsUtils
 
     public static CreateToDoCommand createSimpleCommandForToDoCreating(String toDoName)
     {
-        return new CreateToDoCommand(
+        return CreateToDoCommand.of(
                 toDoName,
                 "",
                 ToDoPriorityType.MEDIUM.toString(),
-                Optional.of(0)
+                Optional.of(0),
+                ""
         );
     }
 
@@ -59,6 +60,6 @@ public class ToDoAccountingCommandUseCasesTestsUtils
 
     public static AssignToDoParentCommand createCommandForToDoParentAssigning(String targetToDoId, String parentToDoId)
     {
-        return new AssignToDoParentCommand(targetToDoId, parentToDoId);
+        return AssignToDoParentCommand.of(targetToDoId, parentToDoId);
     }
 }

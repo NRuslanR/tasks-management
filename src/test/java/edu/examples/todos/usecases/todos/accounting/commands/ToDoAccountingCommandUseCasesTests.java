@@ -104,9 +104,9 @@ public abstract class ToDoAccountingCommandUseCasesTests
     {
         return Stream.of(
                 Arguments.of(createSimpleIncorrectCommandForToDoCreating()),
-                Arguments.of(new CreateToDoCommand(generateRandomToDoName(), "", "", Optional.of(5))),
-                Arguments.of(new CreateToDoCommand(generateRandomToDoName(), "", ToDoPriorityType.MEDIUM.toString(), null)),
-                Arguments.of(new CreateToDoCommand(generateRandomToDoName(), "", ToDoPriorityType.MEDIUM.toString(), Optional.empty()))
+                Arguments.of(CreateToDoCommand.of(generateRandomToDoName(), "", "", Optional.of(5), "")),
+                Arguments.of(CreateToDoCommand.of(generateRandomToDoName(), "", ToDoPriorityType.MEDIUM.toString(), null, "")),
+                Arguments.of(CreateToDoCommand.of(generateRandomToDoName(), "", ToDoPriorityType.MEDIUM.toString(), Optional.empty(), ""))
         );
     }
 

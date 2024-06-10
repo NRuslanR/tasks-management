@@ -17,10 +17,12 @@ spring:
     web-application-type: servlet
 
 application:
+  use-cases:
+    binding: users
   security:
     authentication:
       methods:
-        active: jwt
+        active: basic
         basic:
           realm-name: default
         jwt:

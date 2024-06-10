@@ -1,6 +1,7 @@
 package edu.examples.todos.domain.actors.todos;
 
 import edu.examples.todos.domain.common.entities.BaseEntity;
+import edu.examples.todos.domain.resources.users.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NonNull;
@@ -16,30 +17,31 @@ import java.util.Optional;
 @Table(name = "todos")
 public class ToDo extends BaseEntity<ToDoId>
 {
-    public static ToDo of(ToDoId id, String name, String description, ToDoPriority priority, LocalDateTime createdAt)
+    public static ToDo of(ToDoId id, String name, String description, ToDoPriority priority, LocalDateTime createdAt, User author)
     {
-        return new ToDo(id, name, description, priority, createdAt);
+        return new ToDo(id, name, description, priority, createdAt, author);
     }
 
-    public static ToDo of(ToDoId id, String name, ToDoPriority priority, LocalDateTime createdAt)
+    public static ToDo of(ToDoId id, String name, ToDoPriority priority, LocalDateTime createdAt, User author)
     {
-        return new ToDo(id, name, priority, createdAt);
+        return new ToDo(id, name, priority, createdAt, author);
     }
 
-    public ToDo(ToDoId id, String name, String description, ToDoPriority priority, LocalDateTime createdAt) throws ToDoNameInCorrectException
+    public ToDo(ToDoId id, String name, String description, ToDoPriority priority, LocalDateTime createdAt, User author) throws ToDoNameInCorrectException
     {
-        this(id, name, priority, createdAt);
+        this(id, name, priority, createdAt, author);
 
         setDescription(description);
     }
 
-    private ToDo(ToDoId id, String name, ToDoPriority priority, LocalDateTime createdAt)
+    private ToDo(ToDoId id, String name, ToDoPriority priority, LocalDateTime createdAt, User author)
     {
         super(id);
 
         setCreatedState(createdAt);
         setName(name);
         setPriority(priority);
+        setAuthor(author);
     }
 
     protected ToDo()
@@ -211,4 +213,8 @@ public class ToDo extends BaseEntity<ToDoId>
     {
         return Optional.ofNullable(value).map(v -> v.withNano(0)).orElse(null);
     }
+
+    @OneToOne
+    @JoinColumn(name = "authorId", nullable = false)
+    private User author;
 }

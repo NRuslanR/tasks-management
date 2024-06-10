@@ -82,7 +82,7 @@ public class StandardToDoPerformingCommandUseCases implements ToDoPerformingComm
         return
                 toDoAccountingService
                     .toOperableToDoAsync(toDo.getTarget())
-                    .map(v -> new PerformToDoResult(mapper.map(v, ToDoDto.class)));
+                    .map(v -> PerformToDoResult.of(mapper.map(v, ToDoDto.class)));
     }
 
     private Mono<OperableToDo> saveToDo(OperableToDo toDo)

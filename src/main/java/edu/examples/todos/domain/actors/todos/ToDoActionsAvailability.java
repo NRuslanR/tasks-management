@@ -10,4 +10,14 @@ public class ToDoActionsAvailability
     boolean removingAvailable;
     boolean parentAssigningAvailable;
     boolean performingAvailable;
+
+    public boolean anyActionAvailable()
+    {
+        return
+                viewingAvailable ||
+                changingAvailable ||
+                removingAvailable ||
+                parentAssigningAvailable ||
+                performingAvailable;
+    }
 }

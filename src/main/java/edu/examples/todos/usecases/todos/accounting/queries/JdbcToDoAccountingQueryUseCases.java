@@ -66,7 +66,7 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
                     );
     }
 
-    private Mono<GetToDoByIdResult> doGetToDoById(GetToDoByIdQuery findByIdQuery)
+    protected Mono<GetToDoByIdResult> doGetToDoById(GetToDoByIdQuery findByIdQuery)
     {
         /* refactor: use JOOQ instead */
         return
@@ -74,8 +74,13 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
 
                    jdbcTemplate.queryForObject(
                            String.format(
-                                   "SELECT *, %s FROM todos WHERE id = ?",
-                                   toDoActionsAvailabilitySelection()
+                                   "WITH CTE AS(" +
+                                   "SELECT t.*, %s FROM todos t %s WHERE t.id = ?" +
+                                   ") " +
+                                   "SELECT * FROM CTE %s",
+                                   toDoActionsAvailabilitySelection(),
+                                   joins("t"),
+                                   getToDoByIdPostWhere(findByIdQuery.getToDoId())
                                    ),
                            toDoDtoMapper,
                            findByIdQuery.getToDoId()
@@ -84,6 +89,11 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
                .onErrorResume(DataIntegrityViolationException.class, e -> Mono.error(new IncorrectGetToDoByIdQueryException()))
                .onErrorResume(EmptyResultDataAccessException.class, e -> Mono.error(new ToDoNotFoundException()))
                .map(GetToDoByIdResult::new);
+    }
+
+    protected String getToDoByIdPostWhere(String toDoId)
+    {
+        return "";
     }
 
     @Override
@@ -123,11 +133,16 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
 
                     jdbcTemplate.query(
                         String.format(
-                                "SELECT *, %s FROM todos %s %s %s",
+                                "WITH CTE AS (" +
+                                "SELECT t.*, %s FROM todos t %s %s %s %s" +
+                                ") " +
+                                "SELECT * FROM CTE %s",
                                 toDoActionsAvailabilitySelection(),
+                                joins("t"),
                                 whereClause(query.getFilterQuery()),
                                 orderClause(query.getPageQuery().getSort()),
-                                pagingClause(query.getPageQuery())
+                                pagingClause(query.getPageQuery()),
+                                findToDosPostWhere()
                         ),
                         toDoDtoMapper,
                         whereFieldValues(query.getFilterQuery())
@@ -151,6 +166,11 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
                         )
                 )
                 .map(FindToDosResult::new);
+    }
+
+    protected String findToDosPostWhere()
+    {
+        return "";
     }
 
     private String whereClause(FilterQuery filterQuery)
@@ -228,9 +248,15 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
                                             "UNION " +
                                             "SELECT t.id FROM todos t " +
                                             "JOIN get_all_sub_todos st ON t.parentToDoId = st.id " +
-                                            ") SELECT t.*, %s FROM get_all_sub_todos st " +
-                                            "JOIN todos t ON st.id = t.id",
-                                            toDoActionsAvailabilitySelection()
+                                            ")," +
+                                            "CTE AS (" +
+                                            "SELECT t.*, %s FROM get_all_sub_todos st " +
+                                            "JOIN todos t ON st.id = t.id %s" +
+                                            ") " +
+                                            "SELECT * FROM CTE %s",
+                                            toDoActionsAvailabilitySelection(),
+                                            joins("t"),
+                                            getToDoByIdPostWhere(toDoId)
                                         ),
                                         toDoDtoMapper,
                                         toDoId
@@ -245,15 +271,23 @@ public class JdbcToDoAccountingQueryUseCases implements ToDoAccountingQueryUseCa
                 );
     }
 
-    private String toDoActionsAvailabilitySelection()
+    /*
+        refactor: add more flexibility for overriding by descendants that they don't override a whole method
+     */
+    protected String toDoActionsAvailabilitySelection()
     {
         return String.format(
-            "true as viewingAvailable," +
-            "performedAt is null as changingAvailable," +
-            "true as removingAvailable," +
-            "performedAt is null as parentAssigningAvailable," +
-            "performedAt is null as performingAvailable"
+                "true as viewingAvailable," +
+                "performedAt is null as changingAvailable," +
+                "true as removingAvailable," +
+                "performedAt is null as parentAssigningAvailable," +
+                "performedAt is null as performingAvailable"
         );
+    }
+
+    protected String joins(String targetTableAlias)
+    {
+        return "";
     }
 
     private GetToDoFullInfoByIdResult toGetToDoFullInfoByIdResult(List<ToDoDto> toDoDtos)

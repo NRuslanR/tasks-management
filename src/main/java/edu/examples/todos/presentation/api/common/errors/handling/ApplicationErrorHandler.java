@@ -1,5 +1,6 @@
 package edu.examples.todos.presentation.api.common.errors.handling;
 
+import edu.examples.todos.domain.actors.todos.ToDoActionIsNotAvailableException;
 import edu.examples.todos.features.shared.FeatureException;
 import edu.examples.todos.presentation.api.common.errors.ApplicationError;
 import edu.examples.todos.presentation.api.common.exceptions.EntityNotFoundUseCaseException;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolationException;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -33,6 +35,9 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @Slf4j
 public class ApplicationErrorHandler extends ResponseEntityExceptionHandler
 {
+    @Autowired
+    private AccessDeniedHandler accessDeniedHandler;
+
     @ExceptionHandler({
             UseCasesException.class,
             FeatureException.class
@@ -55,15 +60,22 @@ public class ApplicationErrorHandler extends ResponseEntityExceptionHandler
     }
 
     @SneakyThrows
-    @ExceptionHandler(AccessDeniedException.class)
+    @ExceptionHandler({
+            AccessDeniedException.class,
+            ToDoActionIsNotAvailableException.class
+    })
     public void handleAccessDeniedException(
             HttpServletRequest request,
             HttpServletResponse response,
-            AccessDeniedException exception,
-            AccessDeniedHandler accessDeniedHandler
+            Exception exception
     )
     {
-        accessDeniedHandler.handle(request, response, exception);
+        var accessDeniedException =
+                exception instanceof AccessDeniedException ?
+                        (AccessDeniedException)exception :
+                        new AccessDeniedException(exception.getMessage());
+
+        accessDeniedHandler.handle(request, response, accessDeniedException);
     }
 
     @Override

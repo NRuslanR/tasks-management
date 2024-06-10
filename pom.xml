@@ -16,12 +16,19 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>19</maven.compiler.source>
-        <maven.compiler.target>19</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyyMMdd-HHmmssSSS</maven.build.timestamp.format>
     </properties>
 
     <dependencies>
+
+<!--        <dependency>-->
+<!--            <groupId>org.liquibase</groupId>-->
+<!--            <artifactId>liquibase-core</artifactId>-->
+<!--        </dependency>-->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -175,6 +182,12 @@
 
         <dependencies>
 
+<!--            <dependency>-->
+<!--                <groupId>org.liquibase</groupId>-->
+<!--                <artifactId>liquibase-core</artifactId>-->
+<!--                <version>4.28.0</version>-->
+<!--            </dependency>-->
+
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-security</artifactId>
@@ -243,6 +256,49 @@
             </plugin>
 
         </plugins>
+
+<!--            <plugin>-->
+<!--                <groupId>org.liquibase</groupId>-->
+<!--                <artifactId>liquibase-maven-plugin</artifactId>-->
+<!--                <version>4.20.0</version>-->
+<!--                <configuration>-->
+<!--                    <propertyFile>${project.basedir}/src/main/resources/db/changelog/liquibase-maven-plugin.properties</propertyFile>-->
+<!--                    <systemProperties>-->
+<!--                        <user.name>Developer</user.name>-->
+<!--                    </systemProperties>-->
+<!--                    <logging>info</logging>-->
+<!--                </configuration>-->
+<!--                <dependencies>-->
+<!--                    <dependency>-->
+<!--                        <groupId>org.springframework.boot</groupId>-->
+<!--                        <artifactId>spring-boot-starter-data-jpa</artifactId>-->
+<!--                        <version>3.1.5</version>-->
+<!--                    </dependency>-->
+<!--                    <dependency>-->
+<!--                        <groupId>org.liquibase.ext</groupId>-->
+<!--                        <artifactId>liquibase-hibernate5</artifactId>-->
+<!--                        <version>4.27.0</version>-->
+<!--                    </dependency>-->
+<!--                </dependencies>-->
+<!--            </plugin>-->
+<!--        </plugins>-->
+
+<!--        <resources>-->
+<!--            <resource>-->
+<!--                <directory>src/main/resources</directory>-->
+<!--                <filtering>true</filtering>-->
+<!--                <includes>-->
+<!--                    <include>*.properties</include>-->
+<!--                </includes>-->
+<!--            </resource>-->
+<!--            <resource>-->
+<!--                <directory>src/main/resources</directory>-->
+<!--                <filtering>false</filtering>-->
+<!--                <includes>-->
+<!--                    <include>**/*.*</include>-->
+<!--                </includes>-->
+<!--            </resource>-->
+<!--        </resources>-->
 
         <!--
         <pluginManagement>

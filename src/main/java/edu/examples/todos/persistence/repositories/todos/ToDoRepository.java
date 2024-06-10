@@ -4,6 +4,7 @@ import edu.examples.todos.common.config.profiles.DefaultProfile;
 import edu.examples.todos.domain.actors.todos.OperableToDo;
 import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
+import edu.examples.todos.domain.resources.users.UserId;
 import edu.examples.todos.persistence.repositories.common.EntityRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -57,4 +58,6 @@ public interface ToDoRepository extends EntityRepository<ToDo, ToDoId>
         deleteAll(subToDos);
         delete(toDo);
     }
+
+    long countByAuthorId(UserId authorId);
 }

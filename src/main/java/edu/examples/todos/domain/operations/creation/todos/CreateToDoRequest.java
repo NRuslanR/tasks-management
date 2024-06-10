@@ -1,6 +1,7 @@
 package edu.examples.todos.domain.operations.creation.todos;
 
 import edu.examples.todos.domain.actors.todos.ToDoPriority;
+import edu.examples.todos.domain.resources.users.UserId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,19 +17,20 @@ public class CreateToDoRequest
     private String name;
     private String description;
     private Optional<ToDoPriority> priority;
+    private UserId authorId;
 
-    public static CreateToDoRequest of(String name)
+    public static CreateToDoRequest of(String name, UserId authorId)
     {
-        return of(name, "");
+        return of(name, "", authorId);
     }
 
-    private static CreateToDoRequest of(String name, String description)
+    private static CreateToDoRequest of(String name, String description, UserId authorId)
     {
-        return new CreateToDoRequest(name, description, Optional.empty());
+        return new CreateToDoRequest(name, description, Optional.empty(), authorId);
     }
 
-    private static CreateToDoRequest of(String name, String description, @NonNull ToDoPriority priority)
+    private static CreateToDoRequest of(String name, String description, @NonNull ToDoPriority priority, UserId authorId)
     {
-        return new CreateToDoRequest(name, description, Optional.of(priority));
+        return new CreateToDoRequest(name, description, Optional.of(priority), authorId);
     }
 }

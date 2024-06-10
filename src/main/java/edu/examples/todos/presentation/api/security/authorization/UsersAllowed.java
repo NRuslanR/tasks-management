@@ -1,6 +1,6 @@
 package edu.examples.todos.presentation.api.security.authorization;
 
-import jakarta.annotation.security.RolesAllowed;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@RolesAllowed("USER")
+@PreAuthorize("hasAnyRole('USER', 'ADMIN')")
 public @interface UsersAllowed
 {
 }

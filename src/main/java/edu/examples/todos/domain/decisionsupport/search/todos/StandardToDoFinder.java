@@ -4,6 +4,7 @@ import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
 import edu.examples.todos.domain.actors.todos.ToDoList;
 import edu.examples.todos.domain.common.exceptions.DomainException;
+import edu.examples.todos.domain.resources.users.UserId;
 import edu.examples.todos.persistence.repositories.todos.ToDoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -50,5 +51,11 @@ public class StandardToDoFinder implements ToDoFinder
                             () -> toDoRepository.findAllSubToDosRecursivelyFor(targetToDo.getId().getValue())
                     )
                     .map(ToDoList::of);
+    }
+
+    @Override
+    public Mono<Long> getCreatedToDoCountByAuthorAsync(UserId authorId)
+    {
+        return Mono.fromCallable(() -> toDoRepository.countByAuthorId(authorId));
     }
 }

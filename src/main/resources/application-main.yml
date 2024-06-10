@@ -2,17 +2,21 @@ spring:
   application:
     name: ToDos App
 
+  liquibase:
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yml
+
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     database: postgresql
 
   datasource:
-    url: jdbc:postgresql://srv-pg2/todos
+    url: jdbc:postgresql://localhost/todos
     name: ToDoDataSource
-    username: u_59968
-    password: 123456
+    username: todo_user
+    password: todo_user
     driver-class-name: org.postgresql.Driver
     hikari:
       pool-name: PooledToDoDataSource

@@ -1,5 +1,7 @@
 package edu.examples.todos.usecases.todos.common.dtos;
 
+import edu.examples.todos.domain.actors.todos.ToDoActionsAvailability;
+import edu.examples.todos.usecases.users.accounting.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,7 +13,7 @@ import java.util.Optional;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(staticName = "of")
 @EqualsAndHashCode
 @Relation(itemRelation = "todo", collectionRelation = "todos") /* to deal with correct collection name with relation to PagedModel */
 public class ToDoDto
@@ -33,4 +35,24 @@ public class ToDoDto
 
     private String state;
     private String displayState;
+
+    private UserDto author;
+
+    public ToDoDto combineWithActionsAvailabilityByPairwiseAnd(ToDoActionsAvailability value)
+    {
+        return ToDoDto.of(
+                getId(),
+                getName(),
+                getDescription(),
+                getPriorityType(),
+                getPriorityValue(),
+                getCreatedAt(),
+                getPerformedAt(),
+                getParentToDoId(),
+                getActionsAvailability().pairwiseAnd(value),
+                getState(),
+                getDisplayState(),
+                getAuthor()
+        );
+    }
 }

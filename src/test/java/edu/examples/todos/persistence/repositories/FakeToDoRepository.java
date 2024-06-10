@@ -3,6 +3,8 @@ package edu.examples.todos.persistence.repositories;
 import edu.examples.todos.common.config.profiles.UnitTestsProfile;
 import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
+import edu.examples.todos.domain.resources.users.User;
+import edu.examples.todos.domain.resources.users.UserId;
 import edu.examples.todos.persistence.repositories.common.FakeEntityRepository;
 import edu.examples.todos.persistence.repositories.todos.ToDoRepository;
 import org.springframework.stereotype.Repository;
@@ -25,5 +27,11 @@ public class FakeToDoRepository extends FakeEntityRepository<ToDo, ToDoId> imple
     public List<ToDo> findAllSubToDosRecursivelyFor(UUID toDoId)
     {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public long countByAuthorId(UserId authorId)
+    {
+        return entities.stream().map(ToDo::getAuthor).map(User::getId).filter(authorId::equals).count();
     }
 }

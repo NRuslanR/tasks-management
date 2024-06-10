@@ -4,6 +4,7 @@ import edu.examples.todos.domain.actors.todos.ToDo;
 import edu.examples.todos.domain.actors.todos.ToDoId;
 import edu.examples.todos.domain.actors.todos.ToDoList;
 import edu.examples.todos.domain.common.exceptions.DomainException;
+import edu.examples.todos.domain.resources.users.UserId;
 import reactor.core.publisher.Mono;
 
 import java.util.Optional;
@@ -20,4 +21,6 @@ public interface ToDoFinder
     Mono<ToDo> findToDoByNameAsync(String name) throws NullPointerException, DomainException;
 
     Mono<ToDoList> findAllSubToDosRecursivelyForAsync(ToDo targetToDo);
+
+    Mono<Long> getCreatedToDoCountByAuthorAsync(UserId authorId);
 }

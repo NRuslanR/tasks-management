@@ -14,6 +14,6 @@ public class ToDoTestsUtils
 
     public static ToDo createSimpleTestToDo(String name)
     {
-        return ToDo.of(ToDoId.of(UUID.randomUUID()), name, ToDoPriority.defaultPriority(), LocalDateTime.now());
+        return ToDo.of(ToDoId.of(UUID.randomUUID()), name, ToDoPriority.defaultPriority(), LocalDateTime.now(), null);
     }
 }

@@ -13,6 +13,7 @@ import edu.examples.todos.usecases.todos.relationships.commands.assign_parent.As
 import edu.examples.todos.usecases.todos.relationships.commands.assign_parent.AssignToDoParentResult;
 import edu.examples.todos.usecases.todos.relationships.commands.assign_parent.IncorrectAssignToDoParentCommandException;
 import edu.examples.todos.usecases.todos.relationships.commands.assign_parent.ToDoIsInCorrectToBeParentException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +38,7 @@ public class StandardToDoRelationshipsCommandUseCases implements ToDoRelationshi
 
     @Override
     @Transactional
-    public Mono<AssignToDoParentResult> assignToDoParent(AssignToDoParentCommand command)
+    public Mono<AssignToDoParentResult> assignToDoParent(@Valid AssignToDoParentCommand command)
             throws
             NullPointerException,
             IncorrectAssignToDoParentCommandException,
@@ -96,7 +97,7 @@ public class StandardToDoRelationshipsCommandUseCases implements ToDoRelationshi
         return
                 toDoAccountingService
                         .toOperableToDoAsync(operableToDo.getTarget())
-                        .map(v -> new AssignToDoParentResult(mapper.map(v, ToDoDto.class)));
+                        .map(v -> AssignToDoParentResult.of(mapper.map(v, ToDoDto.class)));
     }
 
     private Mono<OperableToDo> saveToDo(OperableToDo toDo)

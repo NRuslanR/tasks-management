@@ -38,4 +38,9 @@ public class UserId extends EntityId<UserId>
     {
 
     }
+
+    public boolean equals(UserId userId)
+    {
+        return super.equals(userId);
+    }
 }

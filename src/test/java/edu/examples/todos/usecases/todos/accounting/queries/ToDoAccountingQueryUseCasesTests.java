@@ -253,13 +253,13 @@ public abstract class ToDoAccountingQueryUseCasesTests
                 List.of(
                     toDos.get(0),
                     toDoRelationshipsCommandUseCases.assignToDoParent(
-                            new AssignToDoParentCommand(toDos.get(1).getId(), toDos.get(0).getId())
+                            AssignToDoParentCommand.of(toDos.get(1).getId(), toDos.get(0).getId())
                     ).block().getToDo(),
                     toDoRelationshipsCommandUseCases.assignToDoParent(
-                            new AssignToDoParentCommand(toDos.get(2).getId(), toDos.get(0).getId())
+                            AssignToDoParentCommand.of(toDos.get(2).getId(), toDos.get(0).getId())
                     ).block().getToDo(),
                     toDoRelationshipsCommandUseCases.assignToDoParent(
-                            new AssignToDoParentCommand(toDos.get(3).getId(), toDos.get(1).getId())
+                            AssignToDoParentCommand.of(toDos.get(3).getId(), toDos.get(1).getId())
                     ).block().getToDo()
                 );
     }

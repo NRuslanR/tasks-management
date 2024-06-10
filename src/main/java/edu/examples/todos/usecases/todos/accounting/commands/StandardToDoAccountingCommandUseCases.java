@@ -21,6 +21,7 @@ import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCo
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoResult;
 import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
 import edu.examples.todos.usecases.todos.common.exceptions.ToDoNotFoundException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +47,7 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
 
     @Override
     @Transactional
-    public Mono<CreateToDoResult> createToDo(CreateToDoCommand command)
+    public Mono<CreateToDoResult> createToDo(@Valid CreateToDoCommand command)
             throws NullPointerException, IncorrectCreateToDoCommandException, ToDoAlreadyExistsException
     {
         return ensureCreateToDoCommandIsValid(command)
@@ -104,13 +105,13 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
 
     private Mono<CreateToDoResult> toCreateToDoCommandResultAsync(CreateToDoReply reply)
     {
-        return Mono.fromCallable(() -> new CreateToDoResult(mapper.map(reply.getToDo(), ToDoDto.class)));
+        return Mono.fromCallable(() -> CreateToDoResult.of(mapper.map(reply.getToDo(), ToDoDto.class)));
     }
 
     @Override
     @Transactional
     public Mono<UpdateToDoResult> updateToDo(
-            UpdateToDoCommand updateToDoCommand
+            @Valid UpdateToDoCommand updateToDoCommand
     )
         throws
             NullPointerException,
@@ -170,12 +171,12 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
         return
                 toDoAccountingService
                         .toOperableToDoAsync(operableToDo.getTarget())
-                        .map(v -> new UpdateToDoResult(mapper.map(v, ToDoDto.class)));
+                        .map(v -> UpdateToDoResult.of(mapper.map(v, ToDoDto.class)));
     }
 
     @Override
     @Transactional
-    public Mono<RemoveToDoResult> removeToDo(RemoveToDoCommand command)
+    public Mono<RemoveToDoResult> removeToDo(@Valid RemoveToDoCommand command)
             throws
             NullPointerException,
             IncorrectRemoveToDoCommandException,
@@ -221,7 +222,7 @@ public class StandardToDoAccountingCommandUseCases implements ToDoAccountingComm
 
     private RemoveToDoResult toRemoveToDoResult(OperableToDo toDo)
     {
-        return new RemoveToDoResult(mapper.map(toDo, ToDoDto.class));
+        return RemoveToDoResult.of(mapper.map(toDo, ToDoDto.class));
     }
 
     private Mono<OperableToDo> deleteToDo(OperableToDo toDo)
