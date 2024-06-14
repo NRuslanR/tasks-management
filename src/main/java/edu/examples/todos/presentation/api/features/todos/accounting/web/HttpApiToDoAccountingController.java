@@ -1,5 +1,23 @@
 package edu.examples.todos.presentation.api.features.todos.accounting.web;
 
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
 import edu.examples.todos.presentation.api.common.config.ApiPaginationConfiguration;
 import edu.examples.todos.presentation.api.features.todos.accounting.AbstractApiToDoAccountingController;
 import edu.examples.todos.presentation.api.features.todos.common.resources.ToDoFullInfoResource;
@@ -11,14 +29,7 @@ import edu.examples.todos.usecases.todos.accounting.commands.create.CreateToDoCo
 import edu.examples.todos.usecases.todos.accounting.commands.update.UpdateToDoCommand;
 import edu.examples.todos.usecases.todos.accounting.queries.ToDoAccountingQueryUseCases;
 import edu.examples.todos.usecases.todos.common.dtos.ToDoDto;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.PagedModel;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping(path = "/api/todos")

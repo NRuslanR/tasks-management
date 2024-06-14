@@ -1,8 +1,10 @@
 package edu.examples.todos.presentation.api.security.authentication.customizers;
 
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+
 import edu.examples.todos.presentation.api.security.config.HttpBasicRealmValue;
 import lombok.SneakyThrows;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 
 public class HttpBasicAuthenticationBuilderCustomizer implements AuthenticationBuilderCustomizer
 {
@@ -11,10 +13,10 @@ public class HttpBasicAuthenticationBuilderCustomizer implements AuthenticationB
 
     @SneakyThrows
     @Override
-    public HttpSecurity customizeAuthenticationBuilder(HttpSecurity httpSecurity)
+    public ServerHttpSecurity customizeAuthenticationBuilder(ServerHttpSecurity httpSecurity)
     {
         return
                 httpSecurity
-                    .httpBasic(c -> c.realmName(realmName));
+                    .httpBasic(c -> Customizer.withDefaults());
     }
 }

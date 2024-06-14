@@ -1,81 +1,82 @@
 package edu.examples.todos.presentation.api.security.services.clients;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import reactor.core.publisher.Mono;
+
 @RequiredArgsConstructor
 @Validated
-public class StandardClientDetailsService implements ClientDetailsService, UserDetailsService
+public class StandardClientDetailsService implements ClientDetailsService, ReactiveUserDetailsService
 {
     private final ClientDetailsRepository clientDetailsRepository;
 
     @Override
-    public ClientDetails getClientDetails(@NotBlank String clientId) throws NullPointerException, ClientDetailsNotFoundException
+    public Mono<ClientDetails> getClientDetails(@NotBlank String clientId) throws NullPointerException, ClientDetailsNotFoundException
     {
         return getClientDetailsOrThrow(clientId, ClientDetailsNotFoundException.class);
     }
 
     @Override
-    public ClientDetails createClientDetails(@Valid ClientDetails clientDetails) throws NullPointerException
+    public Mono<ClientDetails> createClientDetails(@Valid ClientDetails clientDetails) throws NullPointerException
     {
-        return clientDetailsRepository.save(clientDetails);
+        return Mono.fromCallable(() -> clientDetailsRepository.save(clientDetails));
     }
 
     @Override
-    public ClientDetails updateClientDetails(@Valid ClientDetails newClientDetails) throws NullPointerException, ClientDetailsNotFoundException
+    public Mono<ClientDetails> updateClientDetails(@Valid ClientDetails newClientDetails) throws NullPointerException, ClientDetailsNotFoundException
     {
         var currentClientDetails = getClientDetails(newClientDetails.getId());
 
-        return clientDetailsRepository.save(newClientDetails);
+        return Mono.fromCallable(() -> clientDetailsRepository.save(newClientDetails));
     }
 
     @Override
-    public void removeClientDetails(@NotBlank String clientId) throws NullPointerException
+    public Mono<Void> removeClientDetails(@NotBlank String clientId) throws NullPointerException
     {
-        clientDetailsRepository.deleteById(clientId);
+        return Mono.fromRunnable(() -> clientDetailsRepository.deleteById(clientId));
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
+    public Mono<UserDetails> findByUsername(String username) 
     {
-        var clientDetails =
-                getClientDetailsOrThrow(
-                        username,
-                        UsernameNotFoundException.class,
-                        ClientDetailsNotFoundException.MESSAGE_CONTENT
-                );
-
         return
+            getClientDetailsOrThrow(
+                username,
+                UsernameNotFoundException.class,
+                ClientDetailsNotFoundException.MESSAGE_CONTENT
+            ).map(clientDetails ->
                 new ClientUserDetails(
-                        clientDetails.getId(),
-                        clientDetails.getSecret(),
-                        clientDetails.getUserId().getValue().toString(),
-                        clientDetails
-                                .getAuthorities()
-                                .stream()
-                                .map(v -> "ROLE_" + v.getName())
-                                .map(SimpleGrantedAuthority::new)
-                                .toList()
-                );
+                    clientDetails.getId(),
+                    clientDetails.getSecret(),
+                    clientDetails.getUserId().getValue().toString(),
+                    clientDetails
+                        .getAuthorities()
+                        .stream()
+                        .map(v -> "ROLE_" + v.getName())
+                        .map(SimpleGrantedAuthority::new)
+                        .toList()
+                )
+            );
     }
 
-    private ClientDetails getClientDetailsOrThrow(String clientId, Class<?> exceptionClass)
+    private Mono<ClientDetails> getClientDetailsOrThrow(String clientId, Class<?> exceptionClass)
     {
         return getClientDetailsOrThrow(clientId, exceptionClass, "");
     }
 
     @SneakyThrows
-    private ClientDetails getClientDetailsOrThrow(String clientId, Class<?> exceptionClass, String message)
+    private Mono<ClientDetails> getClientDetailsOrThrow(String clientId, Class<?> exceptionClass, String message)
     {
-        return clientDetailsRepository.findById(clientId).orElseThrow(() -> createException(exceptionClass, message));
+        return Mono.fromCallable(() -> clientDetailsRepository.findById(clientId).orElseThrow(() -> createException(exceptionClass, message)));
     }
 
     @SneakyThrows

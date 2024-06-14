@@ -1,5 +1,7 @@
 package edu.examples.todos.features.clients.get_client_info;
 
+import org.springframework.stereotype.Service;
+
 import edu.examples.todos.domain.resources.users.User;
 import edu.examples.todos.domain.resources.users.UserId;
 import edu.examples.todos.features.clients.shared.ClientInfo;
@@ -10,7 +12,7 @@ import edu.examples.todos.usecases.common.mapping.UseCaseMapper;
 import edu.examples.todos.usecases.users.accounting.UserDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -21,27 +23,37 @@ public class GetClientInfoImpl implements GetClientInfo
     private final UseCaseMapper useCaseMapper;
 
     @Override
-    public GetClientInfoResult run(@Valid GetClientInfoQuery query) throws NullPointerException, ClientInfoNotFoundException
+    public Mono<GetClientInfoResult> run(@Valid GetClientInfoQuery query) throws NullPointerException, ClientInfoNotFoundException
     {
-        var clientDetails = getClientDetails(query.getClientId());
+        return 
+            getClientDetails(query.getClientId())
+                .zipWhen(clientDetails -> getToDoUser(clientDetails.getUserId()))
+                .map(v ->
+                    GetClientInfoResult.of(
+                        ClientInfo.of(
+                            v.getT1().getId(),
+                            v.getT1().getAuthorityNames(),
+                            useCaseMapper.map(v.getT2(), UserDto.class)
+                        )
+                    )
+                );
+    }
 
-        var toDoUser = getToDoUser(clientDetails.getUserId());
-
-        return GetClientInfoResult.of(
-                ClientInfo.of(
-                        clientDetails.getId(),
-                        clientDetails.getAuthorityNames(),
-                        useCaseMapper.map(toDoUser, UserDto.class)
-                )
+    private Mono<ClientDetails> getClientDetails(String clientId)
+    {
+        return Mono.fromCallable(
+            () -> clientDetailsRepository
+                    .findById(clientId)
+                    .orElseThrow(ClientInfoNotFoundException::new)
         );
     }
-    private ClientDetails getClientDetails(String clientId)
-    {
-        return clientDetailsRepository.findById(clientId).orElseThrow(ClientInfoNotFoundException::new);
-    }
 
-    private User getToDoUser(UserId userId)
+    private Mono<User> getToDoUser(UserId userId)
     {
-        return userRepository.findById(userId).orElseThrow(ClientInfoNotFoundException::new);
+        return Mono.fromCallable(
+            () -> userRepository
+                    .findById(userId)
+                    .orElseThrow(ClientInfoNotFoundException::new)
+        );
     }
 }

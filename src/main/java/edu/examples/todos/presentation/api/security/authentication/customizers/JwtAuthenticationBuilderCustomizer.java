@@ -1,9 +1,10 @@
 package edu.examples.todos.presentation.api.security.authentication.customizers;
 
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+
 import edu.examples.todos.presentation.api.security.authentication.filters.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationBuilderCustomizer implements AuthenticationBuilderCustomizer
@@ -11,10 +12,10 @@ public class JwtAuthenticationBuilderCustomizer implements AuthenticationBuilder
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Override
-    public HttpSecurity customizeAuthenticationBuilder(HttpSecurity httpSecurity)
+    public ServerHttpSecurity customizeAuthenticationBuilder(ServerHttpSecurity httpSecurity)
     {
         return
                 httpSecurity
-                        .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                        .addFilterBefore(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION);
     }
 }

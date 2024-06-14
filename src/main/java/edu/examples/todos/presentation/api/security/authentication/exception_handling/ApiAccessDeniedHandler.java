@@ -1,34 +1,45 @@
 package edu.examples.todos.presentation.api.security.authentication.exception_handling;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import edu.examples.todos.presentation.api.common.errors.ApplicationError;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
+import org.springframework.web.server.ServerWebExchange;
 
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import edu.examples.todos.presentation.api.common.errors.ApplicationError;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
-public class ApiAccessDeniedHandler implements AccessDeniedHandler
+public class ApiAccessDeniedHandler implements ServerAccessDeniedHandler
 {
     private final ObjectMapper jacksonMapper;
 
+    @SneakyThrows
     @Override
-    public void handle(
-            HttpServletRequest request,
-            HttpServletResponse response,
+    public Mono<Void> handle(
+            ServerWebExchange exchange,
             AccessDeniedException accessDeniedException
-    ) throws IOException, ServletException
+    ) 
     {
-        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-        response.setContentType("application/json;charset=utf-8");
-        response.getWriter().write(
-                jacksonMapper
-                        .writerWithDefaultPrettyPrinter()
-                        .writeValueAsString(new ApplicationError(accessDeniedException.getMessage()))
-        );
+        var response = exchange.getResponse();
+
+        response.setStatusCode(HttpStatus.FORBIDDEN);
+
+        var headers = response.getHeaders();
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        var responseBody = 
+            jacksonMapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(new ApplicationError(accessDeniedException.getMessage()));
+
+        var responseBodyBuffer = response.bufferFactory().wrap(responseBody.getBytes("UTF-8"));
+
+        return response.writeWith(Mono.just(responseBodyBuffer));
     }
 }

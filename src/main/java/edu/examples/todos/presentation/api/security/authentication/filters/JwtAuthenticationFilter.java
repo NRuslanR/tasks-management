@@ -1,55 +1,56 @@
 package edu.examples.todos.presentation.api.security.authentication.filters;
 
-import edu.examples.todos.presentation.api.security.services.jwt.JwtService;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.StringUtils;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
 
-import java.io.IOException;
-
+import edu.examples.todos.presentation.api.security.services.jwt.JwtService;
+import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter
+public class JwtAuthenticationFilter implements WebFilter
 {
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
+    private final ReactiveUserDetailsService userDetailsService;
+
 
     @Override
-    protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException
+    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain filterChain) 
     {
+        var request = exchange.getRequest();
+
         var jwtTokenString = extractJwtTokenString(request);
 
         if (!StringUtils.hasText(jwtTokenString))
-        {
-            filterChain.doFilter(request, response);
-            return;
-        }
+            return filterChain.filter(exchange);
 
         var tokenInfo = jwtService.validateJwtTokenString(jwtTokenString);
 
-        var userDetails = getUserDetailsFor(tokenInfo.getSubject());
-
-        setCurrentAuthenticationPrincipal(userDetails, request);
-
-        filterChain.doFilter(request, response);
+        return 
+            filterChain
+                .filter(exchange)
+                .contextWrite(context -> 
+                    ReactiveSecurityContextHolder
+                        .withSecurityContext(
+                            getUserDetailsFor(tokenInfo.getSubject())
+                            .map(userDetails -> createAuthenticationPrincipal(userDetails, request))
+                            .map(SecurityContextImpl::new)
+                        )
+                );
     }
 
-    private String extractJwtTokenString(HttpServletRequest request)
+    private String extractJwtTokenString(ServerHttpRequest request)
     {
-        var authorizationBearer = request.getHeader(HttpHeaders.AUTHORIZATION);
+        var authorizationBearer = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
         if (!StringUtils.hasText(authorizationBearer))
             return "";
@@ -58,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
 
         if (bearerParts.length != 2)
             return "";
-
+        
         var bearerLabel = bearerParts[0];
         var bearerToken = bearerParts[1];
 
@@ -68,12 +69,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
         return bearerToken;
     }
 
-    private UserDetails getUserDetailsFor(String subject)
+    private Mono<UserDetails> getUserDetailsFor(String subject)
     {
-        return userDetailsService.loadUserByUsername(subject);
+        return userDetailsService.findByUsername(subject);
     }
 
-    private void setCurrentAuthenticationPrincipal(UserDetails userDetails, HttpServletRequest request)
+    private Authentication createAuthenticationPrincipal(UserDetails userDetails, ServerHttpRequest request)
     {
         var authentication =
                 new UsernamePasswordAuthenticationToken(
@@ -82,8 +83,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter
                         userDetails.getAuthorities()
                 );
 
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return authentication;
     }
 }

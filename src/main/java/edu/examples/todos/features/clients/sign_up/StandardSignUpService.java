@@ -1,5 +1,13 @@
 package edu.examples.todos.features.clients.sign_up;
 
+import java.util.Set;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+
+import edu.examples.todos.domain.operations.creation.users.CreateUserReply;
 import edu.examples.todos.domain.operations.creation.users.CreateUserRequest;
 import edu.examples.todos.domain.operations.creation.users.UserCreationService;
 import edu.examples.todos.domain.resources.users.User;
@@ -13,12 +21,7 @@ import edu.examples.todos.usecases.common.mapping.UseCaseMapper;
 import edu.examples.todos.usecases.users.accounting.UserDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
-
-import java.util.Set;
+import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
@@ -33,47 +36,54 @@ public class StandardSignUpService implements SignUpService
     private final UseCaseMapper useCaseMapper;
 
     @Override
-    public SignUpReply signUp(@Valid SignUpRequest request) throws NullPointerException, ClientAlreadyExistsException
+    public Mono<SignUpReply> signUp(@Valid SignUpRequest request) throws NullPointerException, ClientAlreadyExistsException
     {
-        ensureClientDoesNotExistsYet(request.getClientId());
-
-        User user = createToDoUser(request);
-        ClientDetails clientDetails = createClientDetailsFor(request, user);
-
-        return SignUpReply.of(
-                ClientInfo.of(
-                        clientDetails.getId(),
-                        clientDetails.getAuthorityNames(),
-                        useCaseMapper.map(user, UserDto.class)
-                )
-        );
+        return 
+            ensureClientDoesNotExistsYet(request.getClientId())
+                .flatMap(v -> createToDoUser(request))
+                .zipWhen(user -> createClientDetailsFor(request, user))
+                .map(v -> 
+                    SignUpReply.of(
+                        ClientInfo.of(
+                                v.getT2().getId(),
+                                v.getT2().getAuthorityNames(),
+                                useCaseMapper.map(v.getT1(), UserDto.class)
+                        )
+                    )
+                );
     }
 
-    private void ensureClientDoesNotExistsYet(String clientId) {
+    private Mono<String> ensureClientDoesNotExistsYet(String clientId) 
+    {
+        return Mono.fromCallable(() -> {
 
-        try {
+            try {
 
-            clientDetailsService.getClientDetails(clientId);
+                clientDetailsService.getClientDetails(clientId).block();
+    
+                throw new ClientAlreadyExistsException();
+            }
+    
+            catch (ClientDetailsNotFoundException exception)
+            {
+                return clientId;
+            }
 
-            throw new ClientAlreadyExistsException();
-        }
-
-        catch (ClientDetailsNotFoundException exception)
-        {
-
-        }
+        });
     }
 
-    private User createToDoUser(SignUpRequest request)
+    private Mono<User> createToDoUser(SignUpRequest request)
     {
         var createUserRequest = useCaseMapper.map(request, CreateUserRequest.class);
 
-        var user = userCreationService.createUserAsync(createUserRequest).block().getUser();
-
-        return userRepository.save(user);
+        return 
+            userCreationService
+                .createUserAsync(createUserRequest)
+                .map(CreateUserReply::getUser)
+                .map(userRepository::save);
     }
 
-    private ClientDetails createClientDetailsFor(SignUpRequest request, User user)
+    private Mono<ClientDetails> createClientDetailsFor(SignUpRequest request, User user)
     {
         var clientDetails = useCaseMapper.map(request, ClientDetails.class);
 

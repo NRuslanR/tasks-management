@@ -1,6 +1,7 @@
 package edu.examples.todos.features.clients.sign_up;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 public abstract class AbstractSignUpEndpoint implements SignUpEndpoint
@@ -9,10 +10,11 @@ public abstract class AbstractSignUpEndpoint implements SignUpEndpoint
     private final SignUpResponseAssembler signUpResponseAssembler;
 
     @Override
-    public SignUpResponse signUp(SignUpRequest request)
+    public Mono<SignUpResponse> signUp(SignUpRequest request)
     {
-        var signUpReply = signUpService.signUp(request);
-
-        return signUpResponseAssembler.toModel(signUpReply);
+        return 
+            signUpService
+                .signUp(request)
+                .map(signUpReply -> signUpResponseAssembler.toModel(signUpReply));
     }
 }

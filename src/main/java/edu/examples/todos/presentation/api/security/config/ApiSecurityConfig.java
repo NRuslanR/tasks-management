@@ -1,6 +1,39 @@
 package edu.examples.todos.presentation.api.security.config;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
+import org.springframework.security.web.server.authorization.ServerAccessDeniedHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.reactive.accept.RequestedContentTypeResolver;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import edu.examples.todos.domain.resources.users.UserClaims;
 import edu.examples.todos.domain.resources.users.UserId;
 import edu.examples.todos.domain.resources.users.UserName;
@@ -11,44 +44,13 @@ import edu.examples.todos.presentation.api.security.authentication.customizers.J
 import edu.examples.todos.presentation.api.security.authentication.exception_handling.ApiAccessDeniedHandler;
 import edu.examples.todos.presentation.api.security.authentication.exception_handling.ApiAuthenticationEntryPoint;
 import edu.examples.todos.presentation.api.security.authentication.filters.JwtAuthenticationFilter;
+import edu.examples.todos.presentation.api.security.authentication.filters.JwtAuthorizationHeaderSetFilter;
 import edu.examples.todos.presentation.api.security.services.clients.ClientAuthority;
 import edu.examples.todos.presentation.api.security.services.clients.ClientDetails;
 import edu.examples.todos.presentation.api.security.services.clients.ClientDetailsRepository;
 import edu.examples.todos.presentation.api.security.services.clients.StandardClientDetailsService;
 import edu.examples.todos.presentation.api.security.services.jwt.JwtService;
 import lombok.SneakyThrows;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
-import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
-
-import java.util.Arrays;
-import java.util.Set;
-import java.util.UUID;
 
 @Configuration
 @EnableMethodSecurity(
@@ -56,7 +58,7 @@ import java.util.UUID;
         prePostEnabled = true,
         securedEnabled = true
 )
-@EnableWebSecurity
+@EnableWebFluxSecurity
 public class ApiSecurityConfig
 {
     @Autowired
@@ -65,19 +67,21 @@ public class ApiSecurityConfig
     @HttpBasicRealmValue
     private String realmName;
 
+    @Autowired
+    private ServerCodecConfigurer serverCodecConfigurer;
+
+    @Autowired
+    private RequestedContentTypeResolver requestedContentTypeResolver;
+
     @SneakyThrows
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity httpSecurity,
-            HandlerMappingIntrospector introspector,
+    public SecurityWebFilterChain securityFilterChain(
+            ServerHttpSecurity httpSecurity,
             AuthenticationBuilderCustomizer authenticationBuilderCustomizer
     )
     {
-        MvcRequestMatcher.Builder mvcMatcherBuilder = new MvcRequestMatcher.Builder(introspector);
-
         httpSecurity
                 .csrf(c -> c.disable())
-                .sessionManagement(c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(c -> c.configurationSource(corsConfigurationSource()))
                 .exceptionHandling(c ->
                         c
@@ -85,14 +89,14 @@ public class ApiSecurityConfig
                         .accessDeniedHandler(accessDeniedHandler())
                 )
                 .headers(c -> c.frameOptions(v -> v.disable()))
-                .authorizeHttpRequests(
+                .authorizeExchange(
                         c ->
                             c
-                            .requestMatchers(mvcMatcherBuilder.pattern("/api/todos/**")).hasRole("USER")
-                            .requestMatchers(mvcMatcherBuilder.pattern("/api/users/**")).hasRole("ADMIN")
-                            .requestMatchers(mvcMatcherBuilder.pattern("/api/clients/**")).permitAll()
-                            .requestMatchers(PathRequest.toH2Console()).permitAll()
-                            .anyRequest().authenticated()
+                            .pathMatchers("/api/todos/**").hasRole("USER")
+                            .pathMatchers("/api/users/**").hasRole("ADMIN")
+                            .pathMatchers("/api/clients/**").permitAll()
+                            .pathMatchers("/h2-dev").permitAll()
+                            .anyExchange().authenticated()
                 );
 
         authenticationBuilderCustomizer.customizeAuthenticationBuilder(httpSecurity);
@@ -110,7 +114,7 @@ public class ApiSecurityConfig
     @Bean
     @ConditionalOnProperty(name = "application.security.authentication.methods.active", havingValue = "jwt")
     public JwtAuthenticationBuilderCustomizer jwtAuthenticationBuilderCustomizer(
-            JwtService jwtService, UserDetailsService userDetailsService
+            JwtService jwtService, ReactiveUserDetailsService userDetailsService
     )
     {
         return new JwtAuthenticationBuilderCustomizer(jwtAuthenticationFilter(jwtService, userDetailsService));
@@ -118,9 +122,16 @@ public class ApiSecurityConfig
 
     @Bean
     @ConditionalOnProperty(name = "application.security.authentication.methods.active", havingValue = "jwt")
-    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService)
+    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService, ReactiveUserDetailsService userDetailsService)
     {
         return new JwtAuthenticationFilter(jwtService, userDetailsService);
+    }
+
+    @ConditionalOnProperty(name = "application.security.authentication.methods.active", havingValue = "jwt")
+    @Bean
+    public JwtAuthorizationHeaderSetFilter jwtAuthorizationHeaderSetFilter()
+    {
+        return new JwtAuthorizationHeaderSetFilter(serverCodecConfigurer.getWriters(), requestedContentTypeResolver);
     }
 
     @Bean
@@ -140,13 +151,13 @@ public class ApiSecurityConfig
     }
 
     @Bean
-    public AuthenticationEntryPoint authenticationEntryPoint()
+    public ServerAuthenticationEntryPoint authenticationEntryPoint()
     {
         return new ApiAuthenticationEntryPoint(jacksonMapper, realmName);
     }
 
     @Bean
-    public AccessDeniedHandler accessDeniedHandler()
+    public ServerAccessDeniedHandler accessDeniedHandler()
     {
         return new ApiAccessDeniedHandler(jacksonMapper);
     }
@@ -179,16 +190,24 @@ public class ApiSecurityConfig
                         adminUser.getId(),
                         Set.of(ClientAuthority.of("ADMIN"))
                 )
-        );
+        ).block();
 
         return clientDetailsService;
     }
 
     @SneakyThrows
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+    public ReactiveAuthenticationManager authenticationManager(
+        ReactiveUserDetailsService userDetailsService,
+        PasswordEncoder passwordEncoder
+    )
     {
-        return authenticationConfiguration.getAuthenticationManager();
+        var authenticationManager =
+            new UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService);
+
+        authenticationManager.setPasswordEncoder(passwordEncoder);
+
+        return authenticationManager;
     }
 
     @Bean
@@ -209,17 +228,16 @@ public class ApiSecurityConfig
                     .roles("USER")
                     .build();
 
+                    
         return new InMemoryUserDetailsManager(admin, user);
     }
 
     @Bean
     public RoleHierarchy roleHierarchy()
     {
-        var roleHierarchy = new RoleHierarchyImpl();
-
-        roleHierarchy.setHierarchy(
-                "ROLE_ADMIN > ROLE_USER \n"
-        );
+        var roleHierarchy = 
+            RoleHierarchyImpl
+                .fromHierarchy("ROLE_ADMIN > ROLE_USER \n");
 
         return roleHierarchy;
     }

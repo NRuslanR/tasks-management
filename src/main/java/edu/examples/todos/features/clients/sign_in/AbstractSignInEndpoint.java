@@ -2,6 +2,7 @@ package edu.examples.todos.features.clients.sign_in;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 public abstract class AbstractSignInEndpoint implements SignInEndpoint
@@ -10,10 +11,11 @@ public abstract class AbstractSignInEndpoint implements SignInEndpoint
     private final SignInResponseAssembler responseAssembler;
 
     @Override
-    public SignInResponse run(@Valid SignInRequest request)
+    public Mono<SignInResponse> run(@Valid SignInRequest request)
     {
-        var reply = signIn.run(request);
-
-        return responseAssembler.toModel(reply);
+        return 
+            signIn
+                .run(request)
+                .map(reply -> responseAssembler.toModel(reply));
     }
 }

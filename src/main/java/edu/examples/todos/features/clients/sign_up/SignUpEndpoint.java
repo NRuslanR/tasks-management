@@ -1,6 +1,8 @@
 package edu.examples.todos.features.clients.sign_up;
 
+import reactor.core.publisher.Mono;
+
 public interface SignUpEndpoint
 {
-    SignUpResponse signUp(SignUpRequest request);
+    Mono<SignUpResponse> signUp(SignUpRequest request);
 }

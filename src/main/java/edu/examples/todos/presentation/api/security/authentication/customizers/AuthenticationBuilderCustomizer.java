@@ -1,9 +1,9 @@
 package edu.examples.todos.presentation.api.security.authentication.customizers;
 
 
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 
 public interface AuthenticationBuilderCustomizer
 {
-    HttpSecurity customizeAuthenticationBuilder(HttpSecurity httpSecurity);
+    ServerHttpSecurity customizeAuthenticationBuilder(ServerHttpSecurity httpSecurity);
 }

@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.5</version>
+        <version>3.3.0</version>
         <relativePath/>
     </parent>
 
@@ -24,22 +24,6 @@
     </properties>
 
     <dependencies>
-
-<!--        <dependency>-->
-<!--            <groupId>org.liquibase</groupId>-->
-<!--            <artifactId>liquibase-core</artifactId>-->
-<!--        </dependency>-->
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <!--
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-reactor-netty</artifactId>
-        </dependency>-->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -93,11 +77,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
         </dependency>
@@ -105,13 +84,8 @@
         <dependency>
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
+            <version>3.2.0</version>
         </dependency>
-
-        <!--
-        <dependency>
-            <groupId>org.mapstruct</groupId>
-            <artifactId>mapstruct</artifactId>
-        </dependency>-->
 
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -121,11 +95,13 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-collections4</artifactId>
+            <version>4.4</version>
         </dependency>
 
         <dependency>
             <groupId>org.javatuples</groupId>
             <artifactId>javatuples</artifactId>
+            <version>1.2</version>
         </dependency>
 
         <dependency>
@@ -151,19 +127,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!--
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>annotations</artifactId>
-            <version>RELEASE</version>
-            <scope>compile</scope>
-        </dependency> -->
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -178,73 +141,83 @@
 
     </dependencies>
 
-    <dependencyManagement>
+    <profiles>
+        <profile>
+            <id>production</id>
 
-        <dependencies>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
 
-<!--            <dependency>-->
-<!--                <groupId>org.liquibase</groupId>-->
-<!--                <artifactId>liquibase-core</artifactId>-->
-<!--                <version>4.28.0</version>-->
-<!--            </dependency>-->
+            <dependencies>
+                <dependency>
+                    <groupId>org.liquibase</groupId>
+                    <artifactId>liquibase-core</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                </dependency>
+            </dependencies>
 
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-security</artifactId>
-                <version>3.2.1</version>
-            </dependency>
+            <build>
 
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-validation</artifactId>
-                <version>3.2.2</version>
-            </dependency>
+                <plugins>
 
-            <dependency>
-                <groupId>org.modelmapper</groupId>
-                <artifactId>modelmapper</artifactId>
-                <version>3.2.0</version>
-            </dependency>
+                    <plugin>  
+                        <groupId>org.liquibase</groupId>  
+                        <artifactId>liquibase-maven-plugin</artifactId>  
+                        <version>4.28.0</version>  
+                        <configuration>
+                            <propertyFileWillOverride>true</propertyFileWillOverride>
+                            <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
+                            <changeLogFile>src/main/resources/db/db.changelog-master.yaml</changeLogFile>
+                            <outputChangeLogFile>src/main/resources/db/db.changelog-master.yaml</outputChangeLogFile>
+                            <diffChangeLogFile>${project.basedir}/src/main/resources/db/migrations/${maven.build.timestamp}_changelog.yaml</diffChangeLogFile>
+                            <propertyFile>src/main/resources/liquibase.properties</propertyFile>
+                            <logging>debug</logging>
+                            <verbose>true</verbose>
+                        </configuration>
+                        <dependencies> 
+                            <dependency>
+                                <groupId>org.liquibase</groupId>
+                                <artifactId>liquibase-core</artifactId>
+                                <version>4.28.0</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.liquibase.ext</groupId>
+                                <artifactId>liquibase-hibernate6</artifactId>
+                                <version>4.28.0</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-starter-data-jpa</artifactId>
+                                <version>3.3.0</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>jakarta.validation</groupId>
+                                <artifactId>jakarta.validation-api</artifactId>
+                                <version>3.1.0</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>org.javassist</groupId>
+                                <artifactId>javassist</artifactId>
+                                <version>3.30.2-GA</version>
+                            </dependency>
+                            <dependency>  
+                                <groupId>org.postgresql</groupId>  
+                                <artifactId>postgresql</artifactId>  
+                                <version>42.7.3</version>  
+                            </dependency>  
+                        </dependencies>  
+                    </plugin>  
+                    
+                </plugins>
 
-            <dependency>
-                <groupId>org.mapstruct</groupId>
-                <artifactId>mapstruct</artifactId>
-                <version>1.5.5.Final</version>
-            </dependency>
+            </build>
 
-            <dependency>
-                <groupId>org.mapstruct</groupId>
-                <artifactId>mapstruct-processor</artifactId>
-                <version>1.5.5.Final</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.projectreactor</groupId>
-                <artifactId>reactor-test</artifactId>
-                <version>3.4.18</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.javatuples</groupId>
-                <artifactId>javatuples</artifactId>
-                <version>1.2</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-lang3</artifactId>
-                <version>3.14.0</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.apache.commons</groupId>
-                <artifactId>commons-collections4</artifactId>
-                <version>4.4</version>
-            </dependency>
-
-        </dependencies>
-
-    </dependencyManagement>
+        </profile>
+    </profiles>
 
     <build>
 
@@ -253,74 +226,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
+            </plugin>  
 
         </plugins>
-
-<!--            <plugin>-->
-<!--                <groupId>org.liquibase</groupId>-->
-<!--                <artifactId>liquibase-maven-plugin</artifactId>-->
-<!--                <version>4.20.0</version>-->
-<!--                <configuration>-->
-<!--                    <propertyFile>${project.basedir}/src/main/resources/db/changelog/liquibase-maven-plugin.properties</propertyFile>-->
-<!--                    <systemProperties>-->
-<!--                        <user.name>Developer</user.name>-->
-<!--                    </systemProperties>-->
-<!--                    <logging>info</logging>-->
-<!--                </configuration>-->
-<!--                <dependencies>-->
-<!--                    <dependency>-->
-<!--                        <groupId>org.springframework.boot</groupId>-->
-<!--                        <artifactId>spring-boot-starter-data-jpa</artifactId>-->
-<!--                        <version>3.1.5</version>-->
-<!--                    </dependency>-->
-<!--                    <dependency>-->
-<!--                        <groupId>org.liquibase.ext</groupId>-->
-<!--                        <artifactId>liquibase-hibernate5</artifactId>-->
-<!--                        <version>4.27.0</version>-->
-<!--                    </dependency>-->
-<!--                </dependencies>-->
-<!--            </plugin>-->
-<!--        </plugins>-->
-
-<!--        <resources>-->
-<!--            <resource>-->
-<!--                <directory>src/main/resources</directory>-->
-<!--                <filtering>true</filtering>-->
-<!--                <includes>-->
-<!--                    <include>*.properties</include>-->
-<!--                </includes>-->
-<!--            </resource>-->
-<!--            <resource>-->
-<!--                <directory>src/main/resources</directory>-->
-<!--                <filtering>false</filtering>-->
-<!--                <includes>-->
-<!--                    <include>**/*.*</include>-->
-<!--                </includes>-->
-<!--            </resource>-->
-<!--        </resources>-->
-
-        <!--
-        <pluginManagement>
-
-            <plugins>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <annotationProcessorPaths>
-                            <path>
-                                <groupId>org.mapstruct</groupId>
-                                <artifactId>mapstruct-processor</artifactId>
-                            </path>
-                        </annotationProcessorPaths>
-                    </configuration>
-                </plugin>
-
-            </plugins>
-
-        </pluginManagement>-->
 
     </build>
 

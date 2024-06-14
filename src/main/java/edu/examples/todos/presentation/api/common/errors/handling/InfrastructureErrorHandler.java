@@ -1,13 +1,15 @@
 package edu.examples.todos.presentation.api.common.errors.handling;
 
-import edu.examples.todos.presentation.api.common.errors.ApplicationError;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.reactive.result.method.annotation.ResponseEntityExceptionHandler;
+
+import edu.examples.todos.presentation.api.common.errors.ApplicationError;
+import reactor.core.publisher.Mono;
 
 @ControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -16,15 +18,16 @@ public class InfrastructureErrorHandler extends ResponseEntityExceptionHandler
     @ExceptionHandler({
             OptimisticLockingFailureException.class
     })
-    public ResponseEntity<ApplicationError> handleException(OptimisticLockingFailureException exception)
+    public Mono<ResponseEntity<ApplicationError>> handleException(OptimisticLockingFailureException exception)
     {
-        return
+        return Mono.just(
                 ResponseEntity
                         .internalServerError()
                         .body(
                                 new ApplicationError(
                                         "The attempt to simultaneously deal with same objects against other clients"
                                 )
-                        );
+                        )
+        );
     }
 }

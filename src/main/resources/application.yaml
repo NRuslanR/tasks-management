@@ -14,7 +14,7 @@ spring:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
 
   main:
-    web-application-type: servlet
+    web-application-type: reactive
 
 application:
   use-cases:
@@ -22,7 +22,7 @@ application:
   security:
     authentication:
       methods:
-        active: basic
+        active: jwt
         basic:
           realm-name: default
         jwt:
